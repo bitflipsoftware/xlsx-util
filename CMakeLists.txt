@@ -11,9 +11,7 @@ set (
         SOURCE
         ${SOURCE}
         src/third-party/zlib-1.2.11/contrib/minizip/ioapi.c
-#        src/third-party/zlib-1.2.11/contrib/minizip/iowin32.c
-#        src/third-party/zlib-1.2.11/contrib/minizip/miniunz.c
-#        src/third-party/zlib-1.2.11/contrib/minizip/minizip.c
+#        src/third-party/zlib-1.2.11/contrib/minizip/iowin32.c // TODO - compile conditionally?
         src/third-party/zlib-1.2.11/contrib/minizip/mztools.c
         src/third-party/zlib-1.2.11/contrib/minizip/unzip.c
         src/third-party/zlib-1.2.11/contrib/minizip/zip.c
