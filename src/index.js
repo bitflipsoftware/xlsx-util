@@ -1,4 +1,3 @@
-// test.js
-const addon = require('../build/Release/xlsx-util');
+const xlsxUtil = require('bindings')('xlsx-util.node')
 
-console.log('This should be eight:', addon.parseXlsx(3, 5));
+console.log('This should be eight:', xlsxUtil.parseXlsx(7, 5));
