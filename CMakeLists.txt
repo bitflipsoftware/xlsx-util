@@ -6,6 +6,19 @@ set (CMAKE_CXX_STANDARD 11)
 add_subdirectory(src/third-party/libexpat-R_2_2_5/expat)
 add_subdirectory(src/third-party/zlib-1.2.11)
 
+# add minizip sources?
+set (
+        SOURCE
+        ${SOURCE}
+        src/third-party/zlib-1.2.11/contrib/minizip/ioapi.c
+#        src/third-party/zlib-1.2.11/contrib/minizip/iowin32.c
+#        src/third-party/zlib-1.2.11/contrib/minizip/miniunz.c
+#        src/third-party/zlib-1.2.11/contrib/minizip/minizip.c
+        src/third-party/zlib-1.2.11/contrib/minizip/mztools.c
+        src/third-party/zlib-1.2.11/contrib/minizip/unzip.c
+        src/third-party/zlib-1.2.11/contrib/minizip/zip.c
+    )
+
 # add xlsx-util sources
 set (
         SOURCE
@@ -23,10 +36,15 @@ set (
         src/third-party/xlsxio/lib/xlsxio_write.c
     )
 
-
+# xlsxio needs this defined
+set(ENV{USE_MINIZIP} "SURE")
 
 # create the main project file
 add_executable(test-main ${SOURCE})
+target_include_directories(test-main PRIVATE src/third-party/xlsxio/lib)
+target_include_directories(test-main PRIVATE src/third-party/xlsxio/include)
+target_include_directories(test-main PRIVATE src/third-party/zlib-1.2.11/contrib/minizip)
+
 
 # link subdirectory libraries
 target_link_libraries(test-main expat)
