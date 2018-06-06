@@ -1,3 +1,6 @@
+#define USE_MINIZIP
+#undef USE_LIBZIP
+
 #include "xlsxio_private.h"
 #include "xlsxio_read_sharedstrings.h"
 #include "xlsxio_read.h"

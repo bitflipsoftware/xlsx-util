@@ -35,6 +35,9 @@ THE SOFTWARE.
  * \sa     xlsxiowrite_get_version_string()
  */
 
+#define USE_MINIZIP
+#undef USE_LIBZIP
+
 #ifndef INCLUDED_XLSXIO_VERSION_H
 #define INCLUDED_XLSXIO_VERSION_H
 
