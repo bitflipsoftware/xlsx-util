@@ -21,7 +21,7 @@ set (
 set (
         SOURCE
         ${SOURCE}
-        ../gyp/addon.cc
+        ../cpp/parse-node.cpp
     )
 
 # add xlsxio sources directly to our own target because the xlsxio

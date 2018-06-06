@@ -15,7 +15,7 @@ using v8::Value;
 // This is the implementation of the "add" method
 // Input arguments are passed using the
 // const FunctionCallbackInfo<Value>& args struct
-void Add(const FunctionCallbackInfo<Value>& args) {
+void parseXlsx(const FunctionCallbackInfo<Value>& args) {
   Isolate* isolate = args.GetIsolate();
 
   // Check the number of arguments passed.
@@ -37,13 +37,17 @@ void Add(const FunctionCallbackInfo<Value>& args) {
   double value = args[0]->NumberValue() + args[1]->NumberValue();
   Local<Number> num = Number::New(isolate, value);
 
-  // Set the return value (using the passed in
-  // FunctionCallbackInfo<Value>&)
-  args.GetReturnValue().Set(num);
+      // return an object
+      Local<Object> obj = Object::New(isolate);
+      obj->Set(String::NewFromUtf8(isolate, "answer"), num->ToString());
+
+      args.GetReturnValue().Set(obj);
+
+//  args.GetReturnValue().Set(num);
 }
 
 void Init(Local<Object> exports) {
-  NODE_SET_METHOD(exports, "add", Add);
+  NODE_SET_METHOD(exports, "parseXlsx", parseXlsx);
 }
 
 NODE_MODULE(NODE_GYP_MODULE_NAME, Init)
