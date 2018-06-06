@@ -1,0 +1,22 @@
+{
+  "name": "xlsx-util",
+  "version": "0.0.1",
+  "description": "Native code to parse and write xlsx files.",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bitflip-software/xlsx-util.git"
+  },
+  "keywords": [
+    "xlsx"
+  ],
+  "author": "Matthew James Briggs",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bitflip-software/xlsx-util/issues"
+  },
+  "homepage": "https://github.com/bitflip-software/xlsx-util#readme"
+}
