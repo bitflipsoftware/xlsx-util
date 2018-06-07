@@ -1,9 +1,10 @@
 {
   "name": "xlsx-util",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "Native code to parse and write xlsx files.",
   "main": "gyp/index.js",
   "scripts": {
+    "install": "cmake-js rebuild",
     "test": "test"
   },
   "repository": {
@@ -20,6 +21,7 @@
   },
   "homepage": "https://github.com/bitflip-software/xlsx-util#readme",
   "dependencies": {
+    "bindings": "^1.3.0",
     "cmake-js": "^3.7.3",
     "nan": "^2.10.0"
   },
