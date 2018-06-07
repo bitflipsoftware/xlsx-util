@@ -7,7 +7,8 @@
         '<!(node -e "require(\'nan\')")'
       ],
       'dependencies': [
-        'cpp/third-party/libexpat/libexpat.gyp:expat'
+        'cpp/third-party/libexpat/libexpat.gyp:expat',
+        'cpp/third-party/zlib-gyp/zlib.gyp:zlib'
       ]
     }
   ]
