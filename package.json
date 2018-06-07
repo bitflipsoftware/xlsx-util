@@ -4,7 +4,7 @@
   "description": "Native code to parse and write xlsx files.",
   "main": "gyp/index.js",
   "scripts": {
-    "build": "cmake-js rebuild",
+    "install": "cmake-js rebuild",
     "test": "test"
   },
   "repository": {
