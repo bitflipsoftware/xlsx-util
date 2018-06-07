@@ -14,6 +14,7 @@
         'cpp/third-party/xlsxio/include',
         'cpp/third-party/xlsxio/lib',
         'cpp/third-party/zlib-gyp/contrib/minizip',
+        'cpp/third-party/zlib-gyp/contrib',
         'cpp/third-party/libexpat',
       ],
       'dependencies': [
