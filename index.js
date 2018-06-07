@@ -1,3 +1,3 @@
-const xlsxUtil = require('bindings')('xlsx-util.node')
+const xlsxUtil = require('bindings')('xlsxio.node')
 
 module.exports = xlsxUtil;
