@@ -33,9 +33,6 @@ THE SOFTWARE.
  * simple methods for iterating through data.
  */
 
-#define USE_MINIZIP
-#undef USE_LIBZIP
-
 #ifndef INCLUDED_XLSXIO_READ_H
 #define INCLUDED_XLSXIO_READ_H
 
