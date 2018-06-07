@@ -5,7 +5,8 @@
   "main": "gyp/index.js",
   "scripts": {
     "install": "node-gyp configure && node-gyp build",
-    "test": "jest"
+    "compile": "node-gyp clean && node-gyp configure && node-gyp build",
+    "test": "CI=true yarn compile && node ./node_modules/jest/bin/jest.js --env=jsdom --no-cache --runInBand"
   },
   "repository": {
     "type": "git",
