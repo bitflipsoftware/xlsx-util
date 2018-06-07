@@ -31,9 +31,6 @@ THE SOFTWARE.
  * link with -lxlsxio_write.
  */
 
-#define USE_MINIZIP
-#undef USE_LIBZIP
-
 #ifndef INCLUDED_XLSXIO_WRITE_H
 #define INCLUDED_XLSXIO_WRITE_H
 

@@ -1,6 +1,3 @@
-#define USE_MINIZIP
-#undef USE_LIBZIP
-
 #include "xlsxio_write.h"
 #include "xlsxio_version.h"
 #include <stdlib.h>
