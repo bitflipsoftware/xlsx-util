@@ -1,10 +1,13 @@
 // hello.cc
+#include "toss.h"
+#include "str.h"
 #include <node.h>
 #include <xlsxio_read.h>
 #include <string>
 #include <vector>
 
-namespace demo {
+namespace demo
+{
 
 using v8::FunctionCallbackInfo;
 using v8::Isolate;
@@ -13,35 +16,33 @@ using v8::Object;
 using v8::String;
 using v8::Value;
 
-void Method(const FunctionCallbackInfo<Value>& args) {
-  Isolate* isolate = args.GetIsolate();
+void checkLibrary( const FunctionCallbackInfo<Value>& args )
+{
 
-if (args.Length() != 1) {
-    isolate->ThrowException(v8::Exception::TypeError(
-        String::NewFromUtf8(isolate, "The filename is required.")));
-    return;
-  }
+    Isolate* iso = args.GetIsolate();
 
-// Check the argument types
-  if (!args[0]->IsString()) {
-    isolate->ThrowException(v8::Exception::TypeError(
-        String::NewFromUtf8(isolate, "The filename must be a string.")));
-    return;
-  }
+    // check to see that we have exactly one argument
+    if( args.Length() != 1 )
+    {
+        iq::tossTypeError( iso, "Exactly one argument is required, the filename." );
+        return;
+    }
 
-    std::string filename{ *v8::String::Utf8Value(args[0]->ToString()) };
+    // Check the argument types
+    if ( !args[0]->IsString() )
+    {
+        iq::tossTypeError( iso, "The filename must be a string." );
+        return;
+    }
 
-  // The purpose of this file and function is just to check that the compilation
-  // of xlsxio occurred successfully and if we try to access a function inside
-  // that library that we can do so without crashing.
+    const std::string filename = iq::str( args[0] );
 
     //open .xlsx file for reading
     xlsxioreader xlsxioread;
-    if ((xlsxioread = xlsxioread_open(filename.c_str())) == NULL) {
-      args.GetReturnValue().Set(String::NewFromUtf8(isolate, "fail"));
-          isolate->ThrowException(v8::Exception::Error(
-              String::NewFromUtf8(isolate, "Unable to open xlsx file.")));
-          return;
+    if( ( xlsxioread = xlsxioread_open( filename.c_str() ) ) == NULL )
+    {
+        iq::toss( iso, "Unable to open xlsx file." );
+        return;
     }
 
     std::vector<std::string> valuesFound;
@@ -67,17 +68,18 @@ if (args.Length() != 1) {
     xlsxioread_close(xlsxioread);
 
     // create an object to pass the values back
-    Local<Object> obj = Object::New(isolate);
+    Local<Object> obj = Object::New(iso);
     for( const auto& v : valuesFound )
     {
-        obj->Set(String::NewFromUtf8(isolate, "msg"), args[0]->ToString());
+        obj->Set(String::NewFromUtf8(iso, "msg"), args[0]->ToString());
     }
 
   args.GetReturnValue().Set(obj);
 }
 
-void init(Local<Object> exports) {
-  NODE_SET_METHOD(exports, "checkLibrary", Method);
+void init( Local<Object> exports )
+{
+    NODE_SET_METHOD(exports, "checkLibrary", checkLibrary);
 }
 
 NODE_MODULE(NODE_GYP_MODULE_NAME, init)
