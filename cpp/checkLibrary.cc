@@ -1,6 +1,7 @@
 // hello.cc
 #include "toss.h"
 #include "str.h"
+#include "xlsx.h"
 #include <node.h>
 #include <xlsxio_read.h>
 #include <string>
@@ -37,9 +38,9 @@ void checkLibrary( const FunctionCallbackInfo<Value>& args )
 
     const std::string filename = iq::str( args[0] );
 
-    //open .xlsx file for reading
-    xlsxioreader xlsxioread;
-    if( ( xlsxioread = xlsxioread_open( filename.c_str() ) ) == NULL )
+    iq::XlsxReader xreader{ filename };
+
+    if( !xreader.getIsOk() )
     {
         iq::toss( iso, "Unable to open xlsx file." );
         return;
@@ -51,7 +52,7 @@ void checkLibrary( const FunctionCallbackInfo<Value>& args )
     char* value;
     xlsxioreadersheet sheet;
     const char* sheetname = NULL;
-    if ((sheet = xlsxioread_sheet_open(xlsxioread, sheetname, XLSXIOREAD_SKIP_EMPTY_ROWS)) != NULL) {
+    if ((sheet = xlsxioread_sheet_open(xreader.getReader(), sheetname, XLSXIOREAD_SKIP_EMPTY_ROWS)) != NULL) {
       //read all rows
       while (xlsxioread_sheet_next_row(sheet)) {
         //read all columns
@@ -65,7 +66,7 @@ void checkLibrary( const FunctionCallbackInfo<Value>& args )
     }
 
     //clean up
-    xlsxioread_close(xlsxioread);
+    //xlsxioread_close(xlsxioread);
 
     // create an object to pass the values back
     Local<Object> obj = Object::New(iso);

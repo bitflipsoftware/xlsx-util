@@ -4,6 +4,7 @@
       'target_name': 'xlsxio',
       'sources': [
         'cpp/checkLibrary.cc',
+        'cpp/xlsx.cpp',
         'cpp/third-party/xlsxio/lib/xlsxio_read.c',
         'cpp/third-party/xlsxio/lib/xlsxio_read_sharedstrings.c',
         'cpp/third-party/xlsxio/lib/xlsxio_write.c',
