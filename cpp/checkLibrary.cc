@@ -48,6 +48,7 @@ void checkLibrary( const FunctionCallbackInfo<Value>& args )
 
     std::vector<std::string> valuesFound;
 
+    const auto x = xreader.getSheetNames();
     //read values from first sheet
     char* value;
     xlsxioreadersheet sheet;

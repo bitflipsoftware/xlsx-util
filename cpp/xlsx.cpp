@@ -1,4 +1,6 @@
 #include "xlsx.h"
+#include <string>
+#include <vector>
 
 namespace iq
 {
@@ -32,6 +34,34 @@ namespace iq
 	XlsxReader::getReader() const
 	{
 		return myReader;
+	}
+
+
+	std::vector<std::string>
+	XlsxReader::getSheetNames() const
+	{
+		std::vector<std::string> result;
+
+		if( !getIsOk() )
+		{
+			return result;
+		}
+
+		struct xlsx_list_sheets_data sheetdata;
+      // printf("Available sheets:\n");
+      // sheetdata.index = 0;
+      // sheetdata.firstsheet = NULL;
+      xlsxioread_list_sheets(myReader, xlsx_list_sheets_callback, &sheetdata);
+      // printf("Sheets found: %i\n", sheetdata.index);
+		// const char* sheetname = nullptr;
+		// if ( ( sheet = xlsxioread_sheet_open(myReader, sheetname, XLSXIOREAD_SKIP_EMPTY_ROWS ) ) != nullptr )
+		// {
+		// 	if( sheetname != nullptr )
+		// 	{
+		// 		result.push_back( std::string{ sheetname } );
+		// 	}
+		// }
+      return result;
 	}
 
 
