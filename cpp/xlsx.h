@@ -28,9 +28,7 @@ namespace iq
         static int listSheetsCallback( const char* name, void* callbackdata );
         struct SheetNames
         {
-          std::vector<std::string> sheets;
+            std::vector<std::string> sheets;
         };
-
-
     };
 }
