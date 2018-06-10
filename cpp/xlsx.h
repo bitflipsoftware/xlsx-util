@@ -25,11 +25,12 @@ namespace iq
         xlsxioreader myReader;
 
     private:
-        static int xlsx_list_sheets_callback( const char* name, void* callbackdata );
-        struct xlsx_list_sheets_data
+        static int listSheetsCallback( const char* name, void* callbackdata );
+        struct SheetNames
         {
           std::vector<std::string> sheets;
         };
+
 
     };
 }

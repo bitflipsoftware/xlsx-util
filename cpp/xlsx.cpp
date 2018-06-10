@@ -4,6 +4,9 @@
 
 namespace iq
 {
+
+    
+
     XlsxReader::XlsxReader( const std::string& inFilename )
     : myIsOk{ false }
     , myFilename{ inFilename }
@@ -31,13 +34,9 @@ namespace iq
 
 
     int
-    XlsxReader::xlsx_list_sheets_callback( const char* name, void* callbackdata )
+    XlsxReader::listSheetsCallback( const char* name, void* callbackdata )
     {
-      struct xlsx_list_sheets_data* data = (struct xlsx_list_sheets_data*)callbackdata;
-      // if (!data->firstsheet)
-      //   data->firstsheet = strdup(name);
-      // printf("%3i: %s\n", data->index, name);
-      // data->index++;
+      struct SheetNames* data = static_cast<SheetNames*>( callbackdata );
       data->sheets.push_back( std::string{ name } );
       return 0;
     }
@@ -60,8 +59,8 @@ namespace iq
             return result;
         }
 
-        struct xlsx_list_sheets_data sheetdata;
-        xlsxioread_list_sheets(myReader, xlsx_list_sheets_callback, &sheetdata);
+        struct SheetNames sheetdata;
+        xlsxioread_list_sheets(myReader, listSheetsCallback, &sheetdata);
         return result;
     }
 
