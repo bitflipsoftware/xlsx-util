@@ -3,7 +3,6 @@
 # Check https://circleci.com/docs/2.0/language-javascript/ for more details
 #
 version: 2
-resource_class: small
 
 dependencies:
   pre:
@@ -11,6 +10,8 @@ dependencies:
     - sudo sudo apt-get install -y cmake
 
 jobs:
+  
+  resource_class: small
   build:
     docker:
       # specify the version you desire here
