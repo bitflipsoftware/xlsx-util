@@ -6,6 +6,28 @@
 
 namespace iq
 {
+    Napi::Array getSheetNamesAsync( Napi::Env& env, const std::string& filename )
+    {
+        auto returnArr = Napi::Array::New( env );
+        iq::XlsxReader xreader{ filename };
+
+        if( !xreader.getIsOk() )
+        {
+            return returnArr;
+        }
+
+        const auto sheetNames = xreader.getSheetNames();
+
+        for( int index = 0; index < sheetNames.size(); ++index )
+        {
+            const auto& name = sheetNames.at( index );
+            auto napiString = Napi::String::New( env, name );
+            returnArr[index] = napiString;
+        }
+
+        return returnArr;
+    }
+
     Napi::Promise getSheetNames( const Napi::CallbackInfo& info )
     {
         Napi::Env env = info.Env();
