@@ -14,7 +14,7 @@ namespace iq
     std::string numtolet( int num );
     Napi::Value extractValue( Napi::Env& env, char*& cstr );
     Napi::Object extractRow( Napi::Env& env, xlsxioreadersheet sheet );
-    Napi::Array extractAllRows( Napi::Env& env, const char* sheetname, bool doSkipFirstRow, iq::XlsxReader& xreader );
+    Napi::Array extractAllRows( Napi::Env& env, const char* sheetname, bool hasHeaders, iq::XlsxReader& xreader );
 
     Napi::Array getDataAsync( Napi::Env& env, const std::string& filename )
     {
@@ -39,7 +39,7 @@ namespace iq
     }
 
 
-    Napi::Array extractAllRows( Napi::Env& env, const char* sheetname, bool doSkipFirstRow, iq::XlsxReader& xreader )
+    Napi::Array extractAllRows( Napi::Env& env, const char* sheetname, bool hasHeaders, iq::XlsxReader& xreader )
     {
         auto returnArr = Napi::Array::New( env );
         xlsxioreadersheet sheet = nullptr;
@@ -48,10 +48,19 @@ namespace iq
         if( ( sheet = xlsxioread_sheet_open( xreader.getReader(), sheetname, XLSXIOREAD_SKIP_EMPTY_ROWS ) ) != NULL )
         {
             //read all rows
+            bool headersParsed = false;
             while( xlsxioread_sheet_next_row( sheet ) )
             {
-                returnArr[static_cast<uint32_t>( rowIndex )] = extractRow( env, sheet );
-                ++rowIndex;
+                if ( hasHeaders && rowIndex == 0 && !headersParsed )
+                {
+
+                    headersParsed = true;
+                }
+                else
+                {
+                    returnArr[static_cast<uint32_t>( rowIndex )] = extractRow( env, sheet );
+                    ++rowIndex;
+                }
             }
 
             xlsxioread_sheet_close(sheet);
