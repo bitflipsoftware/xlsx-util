@@ -52,10 +52,7 @@ void getSheetNames( const FunctionCallbackInfo<Value>& args )
     for( int index = 0; index < sheetNames.size(); ++index )
     {
         const auto& name = sheetNames.at( index );
-//        v8::Handle<Value> v8Val = v8::String::New( name.c_str() );
         v8::Local<v8::String> s = v8::String::NewFromUtf8( iso, name.c_str() );
-//        Local<Object> nodeObj = Object::New( iso );
-//        pack_rain_result(iso, result, results[i]);
         returnArr->Set( index, s );
     }
 

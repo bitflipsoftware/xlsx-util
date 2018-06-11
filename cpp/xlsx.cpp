@@ -60,7 +60,8 @@ namespace iq
         }
 
         struct SheetNames sheetdata;
-        xlsxioread_list_sheets(myReader, listSheetsCallback, &sheetdata);
+        xlsxioread_list_sheets( myReader, listSheetsCallback, &sheetdata );
+        result = sheetdata.sheets;
         return result;
     }
 
