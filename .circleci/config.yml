@@ -10,9 +10,9 @@ dependencies:
     - sudo sudo apt-get install -y cmake
 
 jobs:
-  
-  resource_class: small
+
   build:
+    resource_class: small
     docker:
       # specify the version you desire here
       - image: circleci/node:9.8
