@@ -58,14 +58,24 @@ namespace iq
 
         auto deferred = Napi::Promise::Deferred::New(env);
 
-        if ( info.Length() != 1 )
+        if ( info.Length() != 3 )
         {
-            deferred.Reject( Napi::TypeError::New( env, "one argument is required: filename").Value() );
+            deferred.Reject( Napi::TypeError::New( env, "three arguments are required: string filename, bool isFirstRowHeaders, object options").Value() );
             return deferred.Promise();
         }
         else if( !info[0].IsString()  )
         {
-            deferred.Reject( Napi::TypeError::New( env, "one string argument is required: filename").Value() );
+            deferred.Reject( Napi::TypeError::New( env, "the first argument must be a string: filename").Value() );
+            return deferred.Promise();
+        }
+        else if( !info[1].IsBoolean()  )
+        {
+            deferred.Reject( Napi::TypeError::New( env, "the second argument must be a boolean: isFirstRowHeaders").Value() );
+            return deferred.Promise();
+        }
+        else if( !info[2].IsObject()  )
+        {
+            deferred.Reject( Napi::TypeError::New( env, "the third argument must be an object containing options: options").Value() );
             return deferred.Promise();
         }
 
