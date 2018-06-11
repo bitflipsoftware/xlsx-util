@@ -188,30 +188,22 @@ namespace iq
             return deferred.Promise();
         }
 
-        const auto headerOverridesObj = info[2].ToObject().Get( "headerOverrides" ).ToObject();
-
-        napi_value napi_property_names = nullptr;
-        const auto status = napi_get_property_names( static_cast<napi_env>( env ), static_cast<napi_value>( headerOverridesObj ), &napi_property_names );
-
-        if( status != napi_ok )
-        {
-            deferred.Reject( Napi::Error::New( env, "error while reading the headerOverrides object").Value() );
-            return deferred.Promise();
-        }
-
-        Napi::Value propNamesValue( static_cast<napi_env>( env ), napi_property_names );
-
-        if( !propNamesValue.IsArray() )
-        {
-            deferred.Reject( Napi::Error::New( env, "proNamesValue should have been an array").Value() );
-            return deferred.Promise();
-        }
+        auto headerOverridesObj = info[2].ToObject().Get( "headerOverrides" ).ToObject();
 
         const Napi::Array propNamesArray = headerOverridesObj.GetPropertyNames();
+        const auto propNamesLen = propNamesArray.Length();
+        XlsxOptions opts;
+
+        for( int i = 0; i < propNamesLen; ++i )
+        {
+            const auto propName = propNamesArray[i].ToString();
+            const auto val = headerOverridesObj.Get( propName ).ToString();
+            opts.headerOverrides[propName.Utf8Value()] = val.Utf8Value();
+        }
 
         const auto filename = info[0].ToString().Utf8Value();
 
-        std::future<Napi::Array> fut = std::async( std::launch::async, getDataAsync, std::ref( env ), filename, info[1].ToBoolean(), XlsxOptions{} );
+        std::future<Napi::Array> fut = std::async( std::launch::async, getDataAsync, std::ref( env ), filename, info[1].ToBoolean(), opts );
 
         auto returnArr = fut.get();
 
