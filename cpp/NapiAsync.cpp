@@ -40,3 +40,14 @@ Napi::Promise SumAsyncPromise(const Napi::CallbackInfo& info) {
 
   return deferred.Promise();
 }
+
+Napi::Object Init(Napi::Env env, Napi::Object exports) {
+  exports.Set(
+    Napi::String::New(env, "add"),
+    Napi::Function::New(env, SumAsyncPromise)
+  );
+  return exports;
+}
+
+
+NODE_API_MODULE(addon, Init)
