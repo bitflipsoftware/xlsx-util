@@ -1,9 +1,11 @@
 #include "napi.h"
+#include "node_api.h"
 #include "toss.h"
 #include "str.h"
 #include "xlsx.h"
 #include "xlsxio_read.h"
 
+#include <iostream>
 #include <future>
 #include <algorithm>
 #include <sstream>
@@ -22,7 +24,7 @@ namespace iq
 
     struct XlsxOptions
     {
-
+        std::map<std::string, std::string> headerOverrides;
     };
 
     Napi::Array getDataAsync( Napi::Env& env, const std::string& filename, bool hasHeaders, const XlsxOptions& options )
@@ -180,6 +182,32 @@ namespace iq
             deferred.Reject( Napi::TypeError::New( env, "the third argument must be an object containing options: options").Value() );
             return deferred.Promise();
         }
+        else if( !info[2].ToObject().Has( "headerOverrides" ) || !info[2].ToObject().Get( "headerOverrides" ).IsObject() )
+        {
+            deferred.Reject( Napi::TypeError::New( env, "the options object must contain a headerOverrides object").Value() );
+            return deferred.Promise();
+        }
+
+        const auto headerOverridesObj = info[2].ToObject().Get( "headerOverrides" ).ToObject();
+
+        napi_value napi_property_names = nullptr;
+        const auto status = napi_get_property_names( static_cast<napi_env>( env ), static_cast<napi_value>( headerOverridesObj ), &napi_property_names );
+
+        if( status != napi_ok )
+        {
+            deferred.Reject( Napi::Error::New( env, "error while reading the headerOverrides object").Value() );
+            return deferred.Promise();
+        }
+
+        Napi::Value propNamesValue( static_cast<napi_env>( env ), napi_property_names );
+
+        if( !propNamesValue.IsArray() )
+        {
+            deferred.Reject( Napi::Error::New( env, "proNamesValue should have been an array").Value() );
+            return deferred.Promise();
+        }
+
+        const Napi::Array propNamesArray = headerOverridesObj.GetPropertyNames();
 
         const auto filename = info[0].ToString().Utf8Value();
 

@@ -7,7 +7,7 @@ describe('getSheetNames', () => {
         const isFirstRowHeaders = false;
 
         const options = {
-            headerReplacements: {
+            headerOverrides: {
                 hello: "goodbye"
             }
         }
@@ -25,7 +25,7 @@ describe('getSheetNames', () => {
         const isFirstRowHeaders = true;
 
         const options = {
-            headerReplacements: {
+            headerOverrides: {
                 hello: "goodbye"
             }
         }
