@@ -44,7 +44,7 @@ namespace iq
         auto returnArr = Napi::Array::New( env );
         const char* sheetname = nullptr;
         std::map<int, std::string> headers;
-        returnArr[static_cast<uint32_t>( 0 )] = extractAllRows( env, sheetname, false, xreader, headers );
+        returnArr[static_cast<uint32_t>( 0 )] = extractAllRows( env, sheetname, hasHeaders, xreader, headers );
         return returnArr;
     }
 
