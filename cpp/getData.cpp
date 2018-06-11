@@ -10,21 +10,36 @@ namespace iq
 {
     Napi::Value extractValue( Napi::Env& env, char*& cstr );
     Napi::Array extractRow( Napi::Env& env, xlsxioreadersheet sheet );
+    Napi::Array extractAllRows( Napi::Env& env, const char* sheetname, bool doSkipFirstRow, iq::XlsxReader& xreader );
 
     Napi::Array getDataAsync( Napi::Env& env, const std::string& filename )
     {
-        auto returnArr = Napi::Array::New( env );
         iq::XlsxReader xreader{ filename };
 
         if( !xreader.getIsOk() )
         {
-            return returnArr;
+            return Napi::Array::New( env );
         }
 
-        xlsxioreadersheet sheet;
+        const auto sheetNames = xreader.getSheetNames();
+
+        if( sheetNames.empty() )
+        {
+            return Napi::Array::New( env );
+        }
+
+        const char* sheetname = nullptr;
+        const auto returnArr = extractAllRows( env, sheetname, false, xreader );
+        return returnArr;
+    }
+
+
+    Napi::Array extractAllRows( Napi::Env& env, const char* sheetname, bool doSkipFirstRow, iq::XlsxReader& xreader )
+    {
+        auto returnArr = Napi::Array::New( env );
+        xlsxioreadersheet sheet = nullptr;
         int rowIndex = 0;
 
-        const char* sheetname = NULL;
         if( ( sheet = xlsxioread_sheet_open( xreader.getReader(), sheetname, XLSXIOREAD_SKIP_EMPTY_ROWS ) ) != NULL )
         {
             //read all rows
