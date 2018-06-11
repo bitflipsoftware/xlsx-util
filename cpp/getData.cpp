@@ -9,7 +9,7 @@
 namespace iq
 {
     Napi::Value extractValue( Napi::Env& env, char*& cstr );
-    Napi::Array extractRow( Napi::Env& env, xlsxioreadersheet sheet );
+    Napi::Object extractRow( Napi::Env& env, xlsxioreadersheet sheet );
     Napi::Array extractAllRows( Napi::Env& env, const char* sheetname, bool doSkipFirstRow, iq::XlsxReader& xreader );
 
     Napi::Array getDataAsync( Napi::Env& env, const std::string& filename )
@@ -28,8 +28,9 @@ namespace iq
             return Napi::Array::New( env );
         }
 
+        auto returnArr = Napi::Array::New( env );
         const char* sheetname = nullptr;
-        const auto returnArr = extractAllRows( env, sheetname, false, xreader );
+        returnArr[static_cast<uint32_t>( 0 )] = extractAllRows( env, sheetname, false, xreader );
         return returnArr;
     }
 
@@ -45,7 +46,7 @@ namespace iq
             //read all rows
             while( xlsxioread_sheet_next_row( sheet ) )
             {
-                returnArr[rowIndex] = extractRow( env, sheet );
+                returnArr[static_cast<uint32_t>( rowIndex )] = extractRow( env, sheet );
                 ++rowIndex;
             }
 
@@ -56,17 +57,21 @@ namespace iq
     }
 
 
-    Napi::Array extractRow( Napi::Env& env, xlsxioreadersheet sheet )
+    Napi::Object extractRow( Napi::Env& env, xlsxioreadersheet sheet )
     {
         char* valueCstr = nullptr;
         int cellIndex = 0;
-        auto row = Napi::Array::New( env );
+        auto row = Napi::Object::New( env );
         
         //read all columns
         while( ( valueCstr = xlsxioread_sheet_next_cell( sheet ) ) != NULL )
         {
             auto napiString = extractValue( env, valueCstr );
-            row[cellIndex] = napiString;
+
+            // TODO - convert numbers to numbers
+            // TODO - convert scientific notation to number
+            const auto cellIndexNapi = Napi::Number::New( env, cellIndex );
+            row.Set(cellIndexNapi, napiString);
             ++cellIndex;
         }
 
