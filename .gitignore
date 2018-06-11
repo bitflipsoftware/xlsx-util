@@ -1,4 +1,5 @@
 # project specific
+*.sublime-workspace
 
 # this is where the node addon is build by cmake-js
 build/
