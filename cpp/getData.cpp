@@ -20,7 +20,12 @@ namespace iq
     Napi::Array extractAllRows( Napi::Env& env, const char* sheetname, bool hasHeaders, iq::XlsxReader& xreader, std::map<int, std::string>& ioHeaders );
     std::string findHeaderName( int columnIndex, std::map<int, std::string>& ioHeaders );
 
-    Napi::Array getDataAsync( Napi::Env& env, const std::string& filename )
+    struct XlsxOptions
+    {
+
+    };
+
+    Napi::Array getDataAsync( Napi::Env& env, const std::string& filename, bool hasHeaders, const XlsxOptions& options )
     {
         iq::XlsxReader xreader{ filename };
 
@@ -178,7 +183,7 @@ namespace iq
 
         const auto filename = info[0].ToString().Utf8Value();
 
-        std::future<Napi::Array> fut = std::async( std::launch::async, getDataAsync, std::ref( env ), filename );
+        std::future<Napi::Array> fut = std::async( std::launch::async, getDataAsync, std::ref( env ), filename, info[1].ToBoolean(), XlsxOptions{} );
 
         auto returnArr = fut.get();
 
