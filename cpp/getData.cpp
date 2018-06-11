@@ -5,9 +5,13 @@
 #include "xlsxio_read.h"
 
 #include <future>
+#include <algorithm>
+#include <sstream>
+#include <string>
 
 namespace iq
 {
+    std::string numtolet( int num );
     Napi::Value extractValue( Napi::Env& env, char*& cstr );
     Napi::Object extractRow( Napi::Env& env, xlsxioreadersheet sheet );
     Napi::Array extractAllRows( Napi::Env& env, const char* sheetname, bool doSkipFirstRow, iq::XlsxReader& xreader );
@@ -70,7 +74,7 @@ namespace iq
 
             // TODO - convert numbers to numbers
             // TODO - convert scientific notation to number
-            const auto cellIndexNapi = Napi::Number::New( env, cellIndex );
+            const auto cellIndexNapi = Napi::String::New( env, numtolet( cellIndex + 1 ) );
             row.Set(cellIndexNapi, napiString);
             ++cellIndex;
         }
@@ -130,6 +134,43 @@ namespace iq
 
         deferred.Resolve( returnArr );
         return deferred.Promise();
+    }
+
+
+    std::string numtolet( int num )
+    {
+        std::stringstream ss;
+        std::string result;
+        int i = 0; // To store current index in str which is result
+        
+        while( num > 0 )
+        {
+            int rem = num % 26;
+            
+            // If remainder is 0, then a 'Z' must be there in output
+            if( rem == 0 )
+            {
+                ss << std::string{ 'Z' };
+                ++i;
+                num = ( num / 26 ) - 1;
+            }
+            else // If remainder is non-zero
+            {
+                const char a = 'A';
+                const char remC = static_cast<char>( rem );
+                const char remCm = remC - static_cast<char>( 1 );
+                const char theC = a + remCm;
+                ss << std::string{ theC };
+                ++i;
+                num = num / 26;
+            }
+        }
+        
+        result = ss.str();
+        
+        // Reverse the string and print result
+        std::reverse( std::begin(result), std::end(result) );
+        return result;
     }
 }
 
