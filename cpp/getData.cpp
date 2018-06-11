@@ -33,9 +33,10 @@ namespace iq
                 auto row = Napi::Array::New( env );
                 
                 //read all columns
-                while( ( value = xlsxioread_sheet_next_cell( sheet ) ) != NULL )
+                while( ( valueCstr = xlsxioread_sheet_next_cell( sheet ) ) != NULL )
                 {
-                    auto napiString = Napi::String::New( env, value );
+                    const std::string val{ valueCstr };
+                    auto napiString = Napi::String::New( env, val );
                     row[cellIndex] = napiString;
                     free( value );
                     ++cellIndex;
