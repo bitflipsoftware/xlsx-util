@@ -18,7 +18,7 @@ namespace iq
             return returnArr;
         }
 
-        char* value;
+        char* valueCstr = nullptr;
         xlsxioreadersheet sheet;
         int rowIndex = 0;
 
@@ -38,7 +38,8 @@ namespace iq
                     const std::string val{ valueCstr };
                     auto napiString = Napi::String::New( env, val );
                     row[cellIndex] = napiString;
-                    free( value );
+                    free( valueCstr );
+                    valueCstr = nullptr;
                     ++cellIndex;
                 }
                 
