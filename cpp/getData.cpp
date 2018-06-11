@@ -18,13 +18,34 @@ namespace iq
             return returnArr;
         }
 
-        const auto sheetNames = xreader.getSheetNames();
+        char* value;
+        xlsxioreadersheet sheet;
+        int rowIndex = 0;
 
-        for( int index = 0; index < sheetNames.size(); ++index )
+        const char* sheetname = NULL;
+        if( ( sheet = xlsxioread_sheet_open( xreader.getReader(), sheetname, XLSXIOREAD_SKIP_EMPTY_ROWS ) ) != NULL )
         {
-            const auto& name = sheetNames.at( index );
-            auto napiString = Napi::String::New( env, name );
-            returnArr[index] = napiString;
+            //read all rows
+            while( xlsxioread_sheet_next_row( sheet ) )
+            {
+                
+                int cellIndex = 0;
+                auto row = Napi::Array::New( env );
+                
+                //read all columns
+                while( ( value = xlsxioread_sheet_next_cell( sheet ) ) != NULL )
+                {
+                    auto napiString = Napi::String::New( env, value );
+                    row[cellIndex] = napiString;
+                    free( value );
+                    ++cellIndex;
+                }
+                
+                returnArr[rowIndex] = row;
+                ++rowIndex;
+            }
+
+            xlsxioread_sheet_close(sheet);
         }
 
         return returnArr;
