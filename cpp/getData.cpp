@@ -8,6 +8,8 @@
 
 namespace iq
 {
+    Napi::Value extract( Napi::Env& env, char*& cstr );
+
     Napi::Array getDataAsync( Napi::Env& env, const std::string& filename )
     {
         auto returnArr = Napi::Array::New( env );
@@ -35,11 +37,8 @@ namespace iq
                 //read all columns
                 while( ( valueCstr = xlsxioread_sheet_next_cell( sheet ) ) != NULL )
                 {
-                    const std::string val{ valueCstr };
-                    auto napiString = Napi::String::New( env, val );
+                    auto napiString = extract( env, valueCstr );
                     row[cellIndex] = napiString;
-                    free( valueCstr );
-                    valueCstr = nullptr;
                     ++cellIndex;
                 }
                 
@@ -51,6 +50,16 @@ namespace iq
         }
 
         return returnArr;
+    }
+
+
+    Napi::Value extract( Napi::Env& env, char*& cstr )
+    {
+        const std::string val{ cstr };
+        free( cstr );
+        cstr = nullptr;
+        auto napiString = Napi::String::New( env, val );
+        return napiString;
     }
 
 
