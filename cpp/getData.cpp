@@ -8,13 +8,17 @@
 #include <algorithm>
 #include <sstream>
 #include <string>
+#include <map>
+#include <vector>
 
 namespace iq
 {
     std::string numtolet( int num );
     Napi::Value extractValue( Napi::Env& env, char*& cstr );
-    Napi::Object extractRow( Napi::Env& env, xlsxioreadersheet sheet );
-    Napi::Array extractAllRows( Napi::Env& env, const char* sheetname, bool hasHeaders, iq::XlsxReader& xreader );
+    Napi::Object extractRow( Napi::Env& env, xlsxioreadersheet sheet, std::map<int, std::string>& ioHeaders );
+    std::vector<std::string> extractHeaders( Napi::Env& env, xlsxioreadersheet sheet );
+    Napi::Array extractAllRows( Napi::Env& env, const char* sheetname, bool hasHeaders, iq::XlsxReader& xreader, std::map<int, std::string>& ioHeaders );
+    std::string findHeaderName( int columnIndex, std::map<int, std::string>& ioHeaders );
 
     Napi::Array getDataAsync( Napi::Env& env, const std::string& filename )
     {
@@ -34,12 +38,13 @@ namespace iq
 
         auto returnArr = Napi::Array::New( env );
         const char* sheetname = nullptr;
-        returnArr[static_cast<uint32_t>( 0 )] = extractAllRows( env, sheetname, false, xreader );
+        std::map<int, std::string> headers;
+        returnArr[static_cast<uint32_t>( 0 )] = extractAllRows( env, sheetname, false, xreader, headers );
         return returnArr;
     }
 
 
-    Napi::Array extractAllRows( Napi::Env& env, const char* sheetname, bool hasHeaders, iq::XlsxReader& xreader )
+    Napi::Array extractAllRows( Napi::Env& env, const char* sheetname, bool hasHeaders, iq::XlsxReader& xreader, std::map<int, std::string>& ioHeaders )
     {
         auto returnArr = Napi::Array::New( env );
         xlsxioreadersheet sheet = nullptr;
@@ -47,18 +52,31 @@ namespace iq
 
         if( ( sheet = xlsxioread_sheet_open( xreader.getReader(), sheetname, XLSXIOREAD_SKIP_EMPTY_ROWS ) ) != NULL )
         {
-            //read all rows
             bool headersParsed = false;
             while( xlsxioread_sheet_next_row( sheet ) )
             {
                 if ( hasHeaders && rowIndex == 0 && !headersParsed )
                 {
+                    const auto foundHeaders = extractHeaders( env, sheet );
+                    
+                    for( size_t i = 0; i < foundHeaders.size(); ++i )
+                    {
+                        auto foundHeader = foundHeaders.at( i );
+                        
+                        if( foundHeader.empty() )
+                        {
+                            foundHeader = numtolet( i + 1 );
+                        }
+
+                        ioHeaders[i] = foundHeaders.at( i );
+                    }
 
                     headersParsed = true;
                 }
                 else
                 {
-                    returnArr[static_cast<uint32_t>( rowIndex )] = extractRow( env, sheet );
+                    const auto row = extractRow( env, sheet, ioHeaders );
+                    returnArr[static_cast<uint32_t>( rowIndex )] = row;
                     ++rowIndex;
                 }
             }
@@ -70,20 +88,31 @@ namespace iq
     }
 
 
-    Napi::Object extractRow( Napi::Env& env, xlsxioreadersheet sheet )
+    std::string findHeaderName( int columnIndex, std::map<int, std::string>& ioHeaders )
+    {
+        const auto iter = ioHeaders.find( columnIndex );
+        
+        if( iter == ioHeaders.cend() )
+        {
+            const auto name = numtolet( columnIndex + 1 );
+            ioHeaders[columnIndex] = name;
+            return name;
+        }
+
+        return iter->second;
+    }
+
+
+    Napi::Object extractRow( Napi::Env& env, xlsxioreadersheet sheet, std::map<int, std::string>& ioHeaders )
     {
         char* valueCstr = nullptr;
         int cellIndex = 0;
         auto row = Napi::Object::New( env );
         
-        //read all columns
         while( ( valueCstr = xlsxioread_sheet_next_cell( sheet ) ) != NULL )
         {
             auto napiString = extractValue( env, valueCstr );
-
-            // TODO - convert numbers to numbers
-            // TODO - convert scientific notation to number
-            const auto cellIndexNapi = Napi::String::New( env, numtolet( cellIndex + 1 ) );
+            const auto cellIndexNapi = Napi::String::New( env, findHeaderName( cellIndex, ioHeaders ) );
             row.Set(cellIndexNapi, napiString);
             ++cellIndex;
         }
@@ -92,8 +121,26 @@ namespace iq
     }
 
 
+    std::vector<std::string> extractHeaders( Napi::Env& env, xlsxioreadersheet sheet )
+    {
+        char* valueCstr = nullptr;
+        std::vector<std::string> headers;
+        
+        while( ( valueCstr = xlsxioread_sheet_next_cell( sheet ) ) != NULL )
+        {
+            auto napiString = extractValue( env, valueCstr );
+            const auto stdstring = napiString.As<Napi::String>().Utf8Value();
+            headers.push_back( stdstring );
+        }
+
+        return headers;
+    }
+
+
     Napi::Value extractValue( Napi::Env& env, char*& cstr )
     {
+        // TODO - convert numbers to numbers
+        // TODO - convert scientific notation to number
         const std::string val{ cstr };
         free( cstr );
         cstr = nullptr;
