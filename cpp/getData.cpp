@@ -8,7 +8,8 @@
 
 namespace iq
 {
-    Napi::Value extract( Napi::Env& env, char*& cstr );
+    Napi::Value extractValue( Napi::Env& env, char*& cstr );
+    Napi::Array extractRow( Napi::Env& env, xlsxioreadersheet sheet );
 
     Napi::Array getDataAsync( Napi::Env& env, const std::string& filename )
     {
@@ -20,7 +21,6 @@ namespace iq
             return returnArr;
         }
 
-        char* valueCstr = nullptr;
         xlsxioreadersheet sheet;
         int rowIndex = 0;
 
@@ -30,19 +30,7 @@ namespace iq
             //read all rows
             while( xlsxioread_sheet_next_row( sheet ) )
             {
-                
-                int cellIndex = 0;
-                auto row = Napi::Array::New( env );
-                
-                //read all columns
-                while( ( valueCstr = xlsxioread_sheet_next_cell( sheet ) ) != NULL )
-                {
-                    auto napiString = extract( env, valueCstr );
-                    row[cellIndex] = napiString;
-                    ++cellIndex;
-                }
-                
-                returnArr[rowIndex] = row;
+                returnArr[rowIndex] = extractRow( env, sheet );
                 ++rowIndex;
             }
 
@@ -53,7 +41,25 @@ namespace iq
     }
 
 
-    Napi::Value extract( Napi::Env& env, char*& cstr )
+    Napi::Array extractRow( Napi::Env& env, xlsxioreadersheet sheet )
+    {
+        char* valueCstr = nullptr;
+        int cellIndex = 0;
+        auto row = Napi::Array::New( env );
+        
+        //read all columns
+        while( ( valueCstr = xlsxioread_sheet_next_cell( sheet ) ) != NULL )
+        {
+            auto napiString = extractValue( env, valueCstr );
+            row[cellIndex] = napiString;
+            ++cellIndex;
+        }
+
+        return row;
+    }
+
+
+    Napi::Value extractValue( Napi::Env& env, char*& cstr )
     {
         const std::string val{ cstr };
         free( cstr );
