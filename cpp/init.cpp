@@ -1,4 +1,5 @@
-#include <node.h>
+#include "node.h"
+#include "napi.h"
 
 namespace iq
 {
@@ -12,14 +13,31 @@ namespace iq
 
     extern void getSheetNames( const FunctionCallbackInfo<Value>& args );
     extern void checkLibrary( const FunctionCallbackInfo<Value>& args );
+    extern Napi::Promise SumAsyncPromise( const Napi::CallbackInfo& info );
+
+    Napi::Object Init(Napi::Env env, Napi::Object exports) {
+  exports.Set(
+    Napi::String::New(env, "add"),
+    Napi::Function::New(env, SumAsyncPromise)
+  );
+
+  exports.Set(
+    Napi::String::New(env, "checkLibrary"),
+    Napi::Function::New(env, checkLibrary)
+  );
+
+  exports.Set(
+    Napi::String::New(env, "getSheetNames"),
+    Napi::Function::New(env, getSheetNames)
+  );
+
+  // NODE_SET_METHOD( exports, "checkLibrary", checkLibrary );
+  // NODE_SET_METHOD( exports, "getSheetNames", getSheetNames );
+  return exports;
+}
 
 
-    void init( Local<Object> exports )
-    {
-        NODE_SET_METHOD( exports, "checkLibrary", checkLibrary );
-        NODE_SET_METHOD( exports, "getSheetNames", getSheetNames );
-    }
-
-    NODE_MODULE( NODE_GYP_MODULE_NAME, init )
+NODE_API_MODULE( addon, Init )
 
 }
+
