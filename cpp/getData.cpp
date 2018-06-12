@@ -71,7 +71,7 @@ namespace iq
                     
                     if( !options.headerTransform.IsNull() && !foundHeaders.empty() )
                     {
-                        auto arr = Napi::Array::New( env);
+                        auto arr = Napi::Array::New( env );
 
                         for( int i = 0; i < foundHeaders.size(); ++i )
                         {
@@ -79,20 +79,24 @@ namespace iq
                             std::cout << foundHeaders.at( i ) << std::endl;
                         }
 
+                        std::cout << "about to options.headerTransform.Call" << std::endl;
+
+                        // TODO - this crashes without any information, what to do...
                         auto resultValue = options.headerTransform.Call( std::initializer_list<napi_value>{ static_cast<napi_value>( arr ) } );
+                        std::cout << "just did options.headerTransform.Call" << std::endl;
 
-                        // if( resultValue.IsArray() )
-                        // {
-                        //     auto resultObj = resultValue.ToObject();
-                        //     auto resultArr = resultObj.As<Napi::Array>();
-                        //     foundHeaders.clear();
+                        if( resultValue.IsArray() )
+                        {
+                            auto resultObj = resultValue.ToObject();
+                            auto resultArr = resultObj.As<Napi::Array>();
+                            foundHeaders.clear();
 
-                        //     for( int i = 0; i < resultArr.Length(); ++i )
-                        //     {
-                        //         auto something = resultArr.Get( i ).ToString();
-                        //         foundHeaders.push_back( something.Utf8Value() );
-                        //     }
-                        // }
+                            for( int i = 0; i < resultArr.Length(); ++i )
+                            {
+                                auto something = resultArr.Get( i ).ToString();
+                                foundHeaders.push_back( something.Utf8Value() );
+                            }
+                        }
                     }
 
                     for( int i = 0; i < foundHeaders.size(); ++i )
