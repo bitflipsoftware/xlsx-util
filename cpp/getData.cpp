@@ -15,22 +15,16 @@
 
 namespace iq
 {
-
-    struct XlsxOptions
-    {
-        Napi::Function headerTransform;
-    };
-
     std::string numtolet( int num );
     // int lettonum( const std::string& let );
     Napi::Value extractValue( Napi::Env& env, char*& cstr );
     Napi::Object extractRow( Napi::Env& env, xlsxioreadersheet sheet, std::map<int, std::string>& ioHeaders );
     std::vector<std::string> extractHeaders( Napi::Env& env, xlsxioreadersheet sheet );
-    Napi::Array extractAllRows( Napi::Env& env, const char* sheetname, bool hasHeaders, iq::XlsxReader& xreader, std::map<int, std::string>& ioHeaders, const XlsxOptions& options );
+    Napi::Array extractAllRows( Napi::Env& env, const char* sheetname, bool hasHeaders, iq::XlsxReader& xreader, std::map<int, std::string>& ioHeaders, Napi::Function& transform );
     std::string findHeaderName( int columnIndex, std::map<int, std::string>& ioHeaders );
 
 
-    Napi::Array getDataAsync( Napi::Env& env, const std::string& filename, bool hasHeaders, const XlsxOptions& options )
+    Napi::Array getDataAsync( Napi::Env& env, const std::string& filename, bool hasHeaders, Napi::Function& transform )
     {
         iq::XlsxReader xreader{ filename };
 
@@ -49,12 +43,12 @@ namespace iq
         auto returnArr = Napi::Array::New( env );
         const char* sheetname = nullptr;
         std::map<int, std::string> headers;
-        returnArr[static_cast<uint32_t>( 0 )] = extractAllRows( env, sheetname, hasHeaders, xreader, headers, options );
+        returnArr[static_cast<uint32_t>( 0 )] = extractAllRows( env, sheetname, hasHeaders, xreader, headers, transform );
         return returnArr;
     }
 
 
-    Napi::Array extractAllRows( Napi::Env& env, const char* sheetname, bool hasHeaders, iq::XlsxReader& xreader, std::map<int, std::string>& ioHeaders, const XlsxOptions& options )
+    Napi::Array extractAllRows( Napi::Env& env, const char* sheetname, bool hasHeaders, iq::XlsxReader& xreader, std::map<int, std::string>& ioHeaders, Napi::Function& transform )
     {
         auto returnArr = Napi::Array::New( env );
         xlsxioreadersheet sheet = nullptr;
@@ -69,7 +63,7 @@ namespace iq
                 {
                     auto foundHeaders = extractHeaders( env, sheet );
                     
-                    if( !options.headerTransform.IsNull() && !foundHeaders.empty() )
+                    if( !transform.IsNull() && !foundHeaders.empty() )
                     {
                         auto arr = Napi::Array::New( env );
 
@@ -79,11 +73,11 @@ namespace iq
                             std::cout << foundHeaders.at( i ) << std::endl;
                         }
 
-                        std::cout << "about to options.headerTransform.Call" << std::endl;
+                        std::cout << "about to transform.Call" << std::endl;
 
                         // TODO - this crashes without any information, what to do...
-                        auto resultValue = options.headerTransform.Call( std::initializer_list<napi_value>{ static_cast<napi_value>( arr ) } );
-                        std::cout << "just did options.headerTransform.Call" << std::endl;
+                        auto resultValue = transform.Call( std::initializer_list<napi_value>{ static_cast<napi_value>( arr ) } );
+                        std::cout << "just did transform.Call" << std::endl;
 
                         if( resultValue.IsArray() )
                         {
@@ -203,24 +197,17 @@ namespace iq
             deferred.Reject( Napi::TypeError::New( env, "the second argument must be a boolean: isFirstRowHeaders").Value() );
             return deferred.Promise();
         }
-        else if( !info[2].IsObject() )
+        else if( !info[2].IsFunction() )
         {
-            deferred.Reject( Napi::TypeError::New( env, "the third argument must be an object containing options").Value() );
+            deferred.Reject( Napi::TypeError::New( env, "the third argument must be an object which takes an array or strings and returns an array of string").Value() );
             return deferred.Promise();
         }
         
 
-        Napi::Function headerTransformFunc;
-
-        if( info[2].ToObject().Has( "headerTransform" ) && info[2].ToObject().Get( "headerTransform" ).IsFunction() )
-        {
-            headerTransformFunc = info[2].ToObject().Get( "headerTransform" ).As<Napi::Function>();
-        }
+        auto headerTransformFunc = info[2].ToObject().As<Napi::Function>();
 
         const auto filename = info[0].ToString().Utf8Value();
-        XlsxOptions opts;
-        opts.headerTransform = headerTransformFunc;
-        std::future<Napi::Array> fut = std::async( std::launch::async, getDataAsync, std::ref( env ), filename, info[1].ToBoolean(), opts );
+        std::future<Napi::Array> fut = std::async( std::launch::async, getDataAsync, std::ref( env ), filename, info[1].ToBoolean(), std::ref( headerTransformFunc ) );
 
         auto returnArr = fut.get();
 
@@ -239,7 +226,7 @@ namespace iq
     {
         std::stringstream ss;
         std::string result;
-        int i = 0; // To store current index in str which is result
+        int i = 0;
         
         while( num > 0 )
         {
