@@ -79,7 +79,7 @@ namespace iq
                             std::cout << foundHeaders.at( i ) << std::endl;
                         }
 
-                        // auto resultValue = options.headerTransform.Call( std::initializer_list<napi_value>{ static_cast<napi_value>( arr ) } );
+                        auto resultValue = options.headerTransform.Call( std::initializer_list<napi_value>{ static_cast<napi_value>( arr ) } );
 
                         // if( resultValue.IsArray() )
                         // {
@@ -212,7 +212,7 @@ namespace iq
         {
             headerTransformFunc = info[2].ToObject().Get( "headerTransform" ).As<Napi::Function>();
         }
-        
+
         const auto filename = info[0].ToString().Utf8Value();
         XlsxOptions opts;
         opts.headerTransform = headerTransformFunc;
