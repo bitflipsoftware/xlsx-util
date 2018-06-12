@@ -62,47 +62,47 @@ namespace iq
 
         if( ( sheet = xlsxioread_sheet_open( xreader.getReader(), sheetname, XLSXIOREAD_SKIP_EMPTY_ROWS ) ) != NULL )
         {
-            bool headersParsed = false;
+            // bool headersParsed = false;
             while( xlsxioread_sheet_next_row( sheet ) )
             {
-                if ( hasHeaders && rowIndex == 0 && !headersParsed )
-                {
-                    auto foundHeaders = extractHeaders( env, sheet );
+            //     if ( hasHeaders && rowIndex == 0 && !headersParsed )
+            //     {
+            //         auto foundHeaders = extractHeaders( env, sheet );
                     
-                    if( !options.headerTransform.IsNull() && !foundHeaders.empty() )
-                    {
-                        auto arr = Napi::Array::New( env);
+            //         if( !options.headerTransform.IsNull() && !foundHeaders.empty() )
+            //         {
+            //             auto arr = Napi::Array::New( env);
 
-                        for( int i = 0; i < foundHeaders.size(); ++i )
-                        {
-                            arr[i] = Napi::String::New( env, foundHeaders.at( i ) );
-                            // std::cout << foundHeaders.at( i ) << std::endl;
-                        }
+            //             for( int i = 0; i < foundHeaders.size(); ++i )
+            //             {
+            //                 arr[i] = Napi::String::New( env, foundHeaders.at( i ) );
+            //                 std::cout << foundHeaders.at( i ) << std::endl;
+            //             }
 
-                        auto resultValue = options.headerTransform.Call( std::initializer_list<napi_value>{ static_cast<napi_value>( arr ) } );
+            //             // auto resultValue = options.headerTransform.Call( std::initializer_list<napi_value>{ static_cast<napi_value>( arr ) } );
 
-                        if( resultValue.IsArray() )
-                        {
-                            auto resultObj = resultValue.ToObject();
-                            auto resultArr = resultObj.As<Napi::Array>();
-                            foundHeaders.clear();
+            //             // if( resultValue.IsArray() )
+            //             // {
+            //             //     auto resultObj = resultValue.ToObject();
+            //             //     auto resultArr = resultObj.As<Napi::Array>();
+            //             //     foundHeaders.clear();
 
-                            for( int i = 0; i < resultArr.Length(); ++i )
-                            {
-                                auto something = resultArr.Get( i ).ToString();
-                                foundHeaders.push_back( something.Utf8Value() );
-                            }
-                        }
-                    }
+            //             //     for( int i = 0; i < resultArr.Length(); ++i )
+            //             //     {
+            //             //         auto something = resultArr.Get( i ).ToString();
+            //             //         foundHeaders.push_back( something.Utf8Value() );
+            //             //     }
+            //             // }
+            //         }
 
-                    for( int i = 0; i < foundHeaders.size(); ++i )
-                    {
-                        ioHeaders[i] = foundHeaders.at( i );
-                    }
+            //         for( int i = 0; i < foundHeaders.size(); ++i )
+            //         {
+            //             ioHeaders[i] = foundHeaders.at( i );
+            //         }
 
-                    headersParsed = true;
-                }
-                else
+            //         headersParsed = true;
+            //     }
+            //     else
                 {
                     const auto row = extractRow( env, sheet, ioHeaders );
                     returnArr[static_cast<uint32_t>( rowIndex )] = row;
@@ -212,8 +212,7 @@ namespace iq
         {
             headerTransformFunc = info[2].ToObject().Get( "headerTransform" ).As<Napi::Function>();
         }
-
-        auto headerOverridesObj = info[2].ToObject().Get( "headerOverrides" ).ToObject();
+        
         const auto filename = info[0].ToString().Utf8Value();
         XlsxOptions opts;
         opts.headerTransform = headerTransformFunc;

@@ -1,7 +1,7 @@
 const xlsx = require('../index')
 const path = require('path')
 
-describe('getSheetNames', () => {
+describe('getData', () => {
     it('should return data', async (done) => {
         const filepath = path.join(__dirname, 'get-data.xlsx')
         const isFirstRowHeaders = false;
@@ -25,10 +25,10 @@ describe('getSheetNames', () => {
 })
 
 
-describe('getSheetNames', () => {
+describe('getData', () => {
     it('should find headers', async (done) => {
         const filepath = path.join(__dirname, 'with-headers.xlsx')
-        const isFirstRowHeaders = true;
+        const isFirstRowHeaders = false;
 
         const options = {
             headerOverrides: {
