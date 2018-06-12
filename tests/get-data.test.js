@@ -7,8 +7,14 @@ describe('getSheetNames', () => {
         const isFirstRowHeaders = false;
 
         const options = {
-            headerOverrides: {
-                hello: "goodbye"
+            headerTransform: (headersArray) => {
+                headersArray.forEach( (oldHeader, index, arr) => {
+                    if( oldHeader === 'hello') {
+                        arr[index] = 'goodbye'
+                    }
+                })
+
+                return headersArray
             }
         }
 

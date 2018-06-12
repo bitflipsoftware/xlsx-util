@@ -15,17 +15,20 @@
 
 namespace iq
 {
-    std::string numtolet( int num );
-    Napi::Value extractValue( Napi::Env& env, char*& cstr );
-    Napi::Object extractRow( Napi::Env& env, xlsxioreadersheet sheet, std::map<int, std::string>& ioHeaders );
-    std::vector<std::string> extractHeaders( Napi::Env& env, xlsxioreadersheet sheet );
-    Napi::Array extractAllRows( Napi::Env& env, const char* sheetname, bool hasHeaders, iq::XlsxReader& xreader, std::map<int, std::string>& ioHeaders );
-    std::string findHeaderName( int columnIndex, std::map<int, std::string>& ioHeaders );
 
     struct XlsxOptions
     {
-        std::map<std::string, std::string> headerOverrides;
+        Napi::Function headerTransform;
     };
+
+    std::string numtolet( int num );
+    // int lettonum( const std::string& let );
+    Napi::Value extractValue( Napi::Env& env, char*& cstr );
+    Napi::Object extractRow( Napi::Env& env, xlsxioreadersheet sheet, std::map<int, std::string>& ioHeaders );
+    std::vector<std::string> extractHeaders( Napi::Env& env, xlsxioreadersheet sheet );
+    Napi::Array extractAllRows( Napi::Env& env, const char* sheetname, bool hasHeaders, iq::XlsxReader& xreader, std::map<int, std::string>& ioHeaders, const XlsxOptions& options );
+    std::string findHeaderName( int columnIndex, std::map<int, std::string>& ioHeaders );
+
 
     Napi::Array getDataAsync( Napi::Env& env, const std::string& filename, bool hasHeaders, const XlsxOptions& options )
     {
@@ -46,12 +49,12 @@ namespace iq
         auto returnArr = Napi::Array::New( env );
         const char* sheetname = nullptr;
         std::map<int, std::string> headers;
-        returnArr[static_cast<uint32_t>( 0 )] = extractAllRows( env, sheetname, hasHeaders, xreader, headers );
+        returnArr[static_cast<uint32_t>( 0 )] = extractAllRows( env, sheetname, hasHeaders, xreader, headers, options );
         return returnArr;
     }
 
 
-    Napi::Array extractAllRows( Napi::Env& env, const char* sheetname, bool hasHeaders, iq::XlsxReader& xreader, std::map<int, std::string>& ioHeaders )
+    Napi::Array extractAllRows( Napi::Env& env, const char* sheetname, bool hasHeaders, iq::XlsxReader& xreader, std::map<int, std::string>& ioHeaders, const XlsxOptions& options )
     {
         auto returnArr = Napi::Array::New( env );
         xlsxioreadersheet sheet = nullptr;
@@ -64,17 +67,36 @@ namespace iq
             {
                 if ( hasHeaders && rowIndex == 0 && !headersParsed )
                 {
-                    const auto foundHeaders = extractHeaders( env, sheet );
+                    auto foundHeaders = extractHeaders( env, sheet );
                     
-                    for( size_t i = 0; i < foundHeaders.size(); ++i )
+                    if( !options.headerTransform.IsNull() && !foundHeaders.empty() )
                     {
-                        auto foundHeader = foundHeaders.at( i );
-                        
-                        if( foundHeader.empty() )
+                        auto arr = Napi::Array::New( env);
+
+                        for( int i = 0; i < foundHeaders.size(); ++i )
                         {
-                            foundHeader = numtolet( i + 1 );
+                            arr[i] = Napi::String::New( env, foundHeaders.at( i ) );
+                            // std::cout << foundHeaders.at( i ) << std::endl;
                         }
 
+                        auto resultValue = options.headerTransform.Call( std::initializer_list<napi_value>{ static_cast<napi_value>( arr ) } );
+
+                        if( resultValue.IsArray() )
+                        {
+                            auto resultObj = resultValue.ToObject();
+                            auto resultArr = resultObj.As<Napi::Array>();
+                            foundHeaders.clear();
+
+                            for( int i = 0; i < resultArr.Length(); ++i )
+                            {
+                                auto something = resultArr.Get( i ).ToString();
+                                foundHeaders.push_back( something.Utf8Value() );
+                            }
+                        }
+                    }
+
+                    for( int i = 0; i < foundHeaders.size(); ++i )
+                    {
                         ioHeaders[i] = foundHeaders.at( i );
                     }
 
@@ -177,32 +199,24 @@ namespace iq
             deferred.Reject( Napi::TypeError::New( env, "the second argument must be a boolean: isFirstRowHeaders").Value() );
             return deferred.Promise();
         }
-        else if( !info[2].IsObject()  )
+        else if( !info[2].IsObject() )
         {
-            deferred.Reject( Napi::TypeError::New( env, "the third argument must be an object containing options: options").Value() );
+            deferred.Reject( Napi::TypeError::New( env, "the third argument must be an object containing options").Value() );
             return deferred.Promise();
         }
-        else if( !info[2].ToObject().Has( "headerOverrides" ) || !info[2].ToObject().Get( "headerOverrides" ).IsObject() )
+        
+
+        Napi::Function headerTransformFunc;
+
+        if( info[2].ToObject().Has( "headerTransform" ) && info[2].ToObject().Get( "headerTransform" ).IsFunction() )
         {
-            deferred.Reject( Napi::TypeError::New( env, "the options object must contain a headerOverrides object").Value() );
-            return deferred.Promise();
+            headerTransformFunc = info[2].ToObject().Get( "headerTransform" ).As<Napi::Function>();
         }
 
         auto headerOverridesObj = info[2].ToObject().Get( "headerOverrides" ).ToObject();
-
-        const Napi::Array propNamesArray = headerOverridesObj.GetPropertyNames();
-        const auto propNamesLen = propNamesArray.Length();
-        XlsxOptions opts;
-
-        for( int i = 0; i < propNamesLen; ++i )
-        {
-            const auto propName = propNamesArray[i].ToString();
-            const auto val = headerOverridesObj.Get( propName ).ToString();
-            opts.headerOverrides[propName.Utf8Value()] = val.Utf8Value();
-        }
-
         const auto filename = info[0].ToString().Utf8Value();
-
+        XlsxOptions opts;
+        opts.headerTransform = headerTransformFunc;
         std::future<Napi::Array> fut = std::async( std::launch::async, getDataAsync, std::ref( env ), filename, info[1].ToBoolean(), opts );
 
         auto returnArr = fut.get();
@@ -253,5 +267,26 @@ namespace iq
         std::reverse( std::begin(result), std::end(result) );
         return result;
     }
+
+
+    // int lettonum( const std::string& let )
+    // {
+    //     if( let.empty() )
+    //     {
+    //         return -1;
+    //     }
+
+    //     const std::string columnName = std::transform( let.begin(), let.end(), let.begin(), std::toupper );
+
+    //     int sum = 0;
+
+    //     for( int i = 0; i < columnName.size(); ++i )
+    //     {
+    //         sum *= 26;
+    //         sum += ( columnName[i] - 'A' + 1 );
+    //     }
+
+    //     return sum;
+    // }
 }
 
