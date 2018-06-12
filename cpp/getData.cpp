@@ -26,6 +26,7 @@ namespace iq
 
     Napi::Array getDataAsync( Napi::Env& env, const std::string& filename, bool hasHeaders, Napi::Function& transform )
     {
+        std::cout << "begin getDataAsync" << std::endl;
         iq::XlsxReader xreader{ filename };
 
         if( !xreader.getIsOk() )
@@ -50,6 +51,7 @@ namespace iq
 
     Napi::Array extractAllRows( Napi::Env& env, const char* sheetname, bool hasHeaders, iq::XlsxReader& xreader, std::map<int, std::string>& ioHeaders, Napi::Function& transform )
     {
+        std::cout << "begin extractAllRows" << std::endl;
         auto returnArr = Napi::Array::New( env );
         xlsxioreadersheet sheet = nullptr;
         int rowIndex = 0;
@@ -76,21 +78,22 @@ namespace iq
                         std::cout << "about to transform.Call" << std::endl;
 
                         // TODO - this crashes without any information, what to do...
-                        auto resultValue = transform.Call( std::initializer_list<napi_value>{ static_cast<napi_value>( arr ) } );
+                        const std::initializer_list<napi_value> myArgs{ Napi::Array::New( env ) };
+                        // auto resultValue = transform.Call( env.Global(), myArgs );
                         std::cout << "just did transform.Call" << std::endl;
 
-                        if( resultValue.IsArray() )
-                        {
-                            auto resultObj = resultValue.ToObject();
-                            auto resultArr = resultObj.As<Napi::Array>();
-                            foundHeaders.clear();
+                        // if( resultValue.IsArray() )
+                        // {
+                        //     auto resultObj = resultValue.ToObject();
+                        //     auto resultArr = resultObj.As<Napi::Array>();
+                        //     foundHeaders.clear();
 
-                            for( int i = 0; i < resultArr.Length(); ++i )
-                            {
-                                auto something = resultArr.Get( i ).ToString();
-                                foundHeaders.push_back( something.Utf8Value() );
-                            }
-                        }
+                        //     for( int i = 0; i < resultArr.Length(); ++i )
+                        //     {
+                        //         auto something = resultArr.Get( i ).ToString();
+                        //         foundHeaders.push_back( something.Utf8Value() );
+                        //     }
+                        // }
                     }
 
                     for( int i = 0; i < foundHeaders.size(); ++i )
@@ -117,6 +120,7 @@ namespace iq
 
     std::string findHeaderName( int columnIndex, std::map<int, std::string>& ioHeaders )
     {
+        std::cout << "begin findHeaderName" << std::endl;
         const auto iter = ioHeaders.find( columnIndex );
         
         if( iter == ioHeaders.cend() )
@@ -132,6 +136,7 @@ namespace iq
 
     Napi::Object extractRow( Napi::Env& env, xlsxioreadersheet sheet, std::map<int, std::string>& ioHeaders )
     {
+        std::cout << "begin extractRow" << std::endl;
         char* valueCstr = nullptr;
         int cellIndex = 0;
         auto row = Napi::Object::New( env );
@@ -150,6 +155,7 @@ namespace iq
 
     std::vector<std::string> extractHeaders( Napi::Env& env, xlsxioreadersheet sheet )
     {
+        std::cout << "begin extractHeaders" << std::endl;
         char* valueCstr = nullptr;
         std::vector<std::string> headers;
         
@@ -166,6 +172,7 @@ namespace iq
 
     Napi::Value extractValue( Napi::Env& env, char*& cstr )
     {
+        std::cout << "begin extractValue" << std::endl;
         // TODO - convert numbers to numbers
         // TODO - convert scientific notation to number
         const std::string val{ cstr };
@@ -178,6 +185,7 @@ namespace iq
 
     Napi::Promise getData( const Napi::CallbackInfo& info )
     {
+        std::cout << "begin getData" << std::endl;
         Napi::Env env = info.Env();
 
         auto deferred = Napi::Promise::Deferred::New(env);
@@ -206,6 +214,10 @@ namespace iq
 
         auto headerTransformFunc = info[2].ToObject().As<Napi::Function>();
 
+        const std::initializer_list<napi_value> myArgs{ Napi::Array::New( env ) };
+        auto x = info[2].ToObject().As<Napi::Function>().Call( env.Global(), myArgs );
+        // auto resultValue = transform.Call(  );
+
         const auto filename = info[0].ToString().Utf8Value();
         std::future<Napi::Array> fut = std::async( std::launch::async, getDataAsync, std::ref( env ), filename, info[1].ToBoolean(), std::ref( headerTransformFunc ) );
 
@@ -224,6 +236,7 @@ namespace iq
 
     std::string numtolet( int num )
     {
+        std::cout << "begin numtolet" << std::endl;
         std::stringstream ss;
         std::string result;
         int i = 0;
