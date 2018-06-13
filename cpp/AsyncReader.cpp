@@ -9,29 +9,30 @@ namespace xlsx
     , myFilename{ filename }
     , myHasHeaders{ hasHeaders }
     , myHeaderTransform{ headerTransform }
-    , myResult{}
+    , myData{}
     {
 
     }
 
-
     void
     AsyncReader::Execute()
     {
-        myResult = extractAllData( myScope, myFilename, myHasHeaders, myHeaderTransform );
+        myData = extractAllData( myFilename );
     }
 
 
     void
     AsyncReader::OnOK()
     {
-        Callback().MakeCallback( Receiver().Value(), { myScope.Env().Null(), myResult } );
+                                                       // error              // result
+        Callback().MakeCallback( Receiver().Value(), { myScope.Env().Null(), myScope.Env().Null() } );
     }
 
 
     void
     AsyncReader::OnError( const Napi::Error& e )
     {
+                                                       // error   // result
         Callback().MakeCallback( Receiver().Value(), { e.Value(), myScope.Env().Undefined() } );
     }
 }
