@@ -3,12 +3,10 @@
 
 namespace xlsx
 {
-    AsyncReader::AsyncReader( Napi::HandleScope scope, const std::string& filename, bool hasHeaders, const Napi::Function& headerTransform, const Napi::Function& callback )
+    AsyncReader::AsyncReader( const std::string& filename, bool hasHeaders, const Napi::Function& callback )
     : Napi::AsyncWorker{ callback }
-    , myScope{ scope }
     , myFilename{ filename }
     , myHasHeaders{ hasHeaders }
-    , myHeaderTransform{ headerTransform }
     , myData{}
     {
 
@@ -24,8 +22,8 @@ namespace xlsx
     void
     AsyncReader::OnOK()
     {
-                                                       // error              // result
-        Callback().MakeCallback( Receiver().Value(), { myScope.Env().Null(), myScope.Env().Null() } );
+                                                       // error      // result
+        Callback().MakeCallback( Receiver().Value(), { Env().Null(), Env().Null() } );
     }
 
 
@@ -33,6 +31,6 @@ namespace xlsx
     AsyncReader::OnError( const Napi::Error& e )
     {
                                                        // error   // result
-        Callback().MakeCallback( Receiver().Value(), { e.Value(), myScope.Env().Undefined() } );
+        Callback().MakeCallback( Receiver().Value(), { e.Value(), Env().Undefined() } );
     }
 }

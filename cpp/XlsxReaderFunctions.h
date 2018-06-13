@@ -15,13 +15,12 @@ namespace xlsx
     using Row = std::vector<std::string>;
     using Table = std::vector<Row>;
 
-    std::string numtolet( int num );
+    // std::string numtolet( int num );
     Row extractRow( xlsxioreadersheet sheet, std::map<int, std::string>& ioHeaders );
-    Row extractHeaders( xlsxioreadersheet sheet );
-    Table extractAllRows( const char* sheetname, bool hasHeaders, iq::XlsxReader& xreader, std::map<int, std::string>& ioHeaders );
+    Table extractAllRows( const char* sheetname, iq::XlsxReader& xreader, std::map<int, std::string>& ioHeaders );
 
 
-    inline std::string
+    inline Table
     extractAllData( const std::string& filename )
     {
         std::cout << "begin getDataAsync" << std::endl;
@@ -32,38 +31,34 @@ namespace xlsx
             return Table{};
         }
 
-        Table returnArr;
         const char* sheetname = nullptr;
         std::map<int, std::string> headers;
         std::cout << "about to call extractAllRows from getDataAsync" << std::endl;
-        returnArr[static_cast<uint32_t>( 0 )] = extractAllRows( scope, sheetname, hasHeaders, xreader, headers );
+        Table tbl = extractAllRows( sheetname, xreader, headers );
         std::cout << "executing return returnArr from getDataAsync" << std::endl;
-        return returnArr;
+        return tbl;
     }
 
 
     inline Table
-    extractAllRows( const char* sheetname, bool hasHeaders, iq::XlsxReader& xreader, std::map<int, std::string>& ioHeaders )
+    extractAllRows( const char* sheetname, iq::XlsxReader& xreader, std::map<int, std::string>& ioHeaders )
     {
         std::cout << "begin extractAllRows" << std::endl;
-        auto returnArr = XXXXXXArray::New( scope.Env()  );
+        Table tbl;
         xlsxioreadersheet sheet = nullptr;
-        int rowIndex = 0;
 
         if( ( sheet = xlsxioread_sheet_open( xreader.getReader(), sheetname, XLSXIOREAD_SKIP_EMPTY_ROWS ) ) != NULL )
         {
-            bool headersParsed = false;
             while( xlsxioread_sheet_next_row( sheet ) )
             {
-                const auto row = extractRow( scope, sheet, ioHeaders );
-                returnArr[static_cast<uint32_t>( rowIndex )] = row;
-                ++rowIndex;
+                auto row = extractRow( sheet, ioHeaders );
+                tbl.emplace_back( std::move( row ) );
             }
 
             xlsxioread_sheet_close(sheet);
         }
 
-        return returnArr;
+        return tbl;
     }
 
 
@@ -87,61 +82,41 @@ namespace xlsx
     }
 
 
-    inline std::vector<std::string>
-    extractHeaders( xlsxioreadersheet sheet )
-    {
-        std::cout << "begin extractHeaders" << std::endl;
-        char* valueCstr = nullptr;
-        std::vector<std::string> headers;
+    // std::string numtolet( int num )
+    // {
+    //     std::cout << "begin numtolet" << std::endl;
+    //     std::stringstream ss;
+    //     std::string result;
+    //     int i = 0;
         
-        while( ( valueCstr = xlsxioread_sheet_next_cell( sheet ) ) != NULL )
-        {
-            const std::string val{ valueCstr };
-//            XXXXXXValue napiString = extractValue( scope, val );
-            free( valueCstr );
-            valueCstr = nullptr;
-            headers.push_back( val );
-        }
-
-        return headers;
-    }
-
-
-    std::string numtolet( int num )
-    {
-        std::cout << "begin numtolet" << std::endl;
-        std::stringstream ss;
-        std::string result;
-        int i = 0;
-        
-        while( num > 0 )
-        {
-            int rem = num % 26;
+    //     while( num > 0 )
+    //     {
+    //         int rem = num % 26;
             
-            // If remainder is 0, then a 'Z' must be there in output
-            if( rem == 0 )
-            {
-                ss << std::string{ 'Z' };
-                ++i;
-                num = ( num / 26 ) - 1;
-            }
-            else // If remainder is non-zero
-            {
-                const char a = 'A';
-                const char remC = static_cast<char>( rem );
-                const char remCm = remC - static_cast<char>( 1 );
-                const char theC = a + remCm;
-                ss << std::string{ theC };
-                ++i;
-                num = num / 26;
-            }
-        }
+    //         // If remainder is 0, then a 'Z' must be there in output
+    //         if( rem == 0 )
+    //         {
+    //             ss << std::string{ 'Z' };
+    //             ++i;
+    //             num = ( num / 26 ) - 1;
+    //         }
+    //         else // If remainder is non-zero
+    //         {
+    //             const char a = 'A';
+    //             const char remC = static_cast<char>( rem );
+    //             const char remCm = remC - static_cast<char>( 1 );
+    //             const char theC = a + remCm;
+    //             ss << std::string{ theC };
+    //             ++i;
+    //             num = num / 26;
+    //         }
+    //     }
         
-        result = ss.str();
+    //     result = ss.str();
         
-        // Reverse the string and print result
-        std::reverse( std::begin(result), std::end(result) );
-        return result;
-    }
+    //     // Reverse the string and print result
+    //     std::reverse( std::begin(result), std::end(result) );
+    //     return result;
+    // }
 }
 

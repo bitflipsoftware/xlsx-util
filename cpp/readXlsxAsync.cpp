@@ -50,7 +50,7 @@ namespace xlsx
         const std::string filename = info[0].As<Napi::String>().Utf8Value();
         const bool hasHeaders = info[1].As<Napi::Boolean>();
         Napi::Function headerTransform = info[2].As<Napi::Function>();
-        AsyncReader* reader = new AsyncReader{ scope, filename, hasHeaders, headerTransform, cb };
+        AsyncReader* reader = new AsyncReader{ filename, hasHeaders, cb };
         reader->Queue();
     }
 }
