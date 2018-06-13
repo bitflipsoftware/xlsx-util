@@ -1,5 +1,7 @@
+#include "napi.h"
 #include "readXlsxAsync.h"
 #include "AsyncReader.h"
+#include "AsyncError.h"
 
 namespace xlsx
 {
@@ -25,28 +27,28 @@ namespace xlsx
 
         if( !info[0].IsString() )
         {
-            auto err = new ErrorAsyncWorker{ cb, "first argument must be a string [filename]" }
+            auto err = new AsyncError{ cb, "first argument must be a string [filename]" };
             err->Queue();
             return;
         }
 
         if( !info[1].IsBoolean() )
         {
-            auto err = new ErrorAsyncWorker{ cb, "second argument must be a bool [hasHeaders]" }
+            auto err = new AsyncError{ cb, "second argument must be a bool [hasHeaders]" };
             err->Queue();
             return;
         }
 
         if( !info[2].IsFunction() )
         {
-            auto err = new ErrorAsyncWorker{ cb, "third argument must be a function [headerTransform]" }
+            auto err = new AsyncError{ cb, "third argument must be a function [headerTransform]" };
             err->Queue();
             return;
         }
 
-        const std::string filename = info[0].As<Napi::String>.Utf8Value();
-        const bool hasHeaders = info[1].As<Napi::Boolean>;
-        Napi::Function headerTransform = info[2].As<Napi::Function>;
+        const std::string filename = info[0].As<Napi::String>().Utf8Value();
+        const bool hasHeaders = info[1].As<Napi::Boolean>();
+        Napi::Function headerTransform = info[2].As<Napi::Function>();
         AsyncReader* reader = new AsyncReader{ filename, hasHeaders, headerTransform, cb };
         reader->Queue();
     }

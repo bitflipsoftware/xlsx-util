@@ -1,12 +1,12 @@
 {
   'targets': [
     {
-      'target_name': 'xlsxio',
+      'target_name': 'xlsx',
       'sources': [
         'cpp/init.cpp',
         'cpp/AsyncReader.cpp',
         'cpp/AsyncError.cpp',
-        'cpp/readXlsxAsync',
+        'cpp/readXlsxAsync.cpp',
         'cpp/xlsx.cpp',
         'cpp/third-party/xlsxio/lib/xlsxio_read.c',
         'cpp/third-party/xlsxio/lib/xlsxio_read_sharedstrings.c',
