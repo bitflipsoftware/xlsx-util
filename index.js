@@ -7,10 +7,6 @@ const readFile = (filepathString, hasHeadersBool, headerTransformFunc) => new Pr
             throw new Error('first argument must be a filepath in the form of a string')
         }
 
-        if (typeof headerTransformFunc) {
-            throw new Error('first argument must be a filepath in the form of a string')
-        }
-
         let transform = (arr) => arr
 
         if(!headerTransformFunc) {

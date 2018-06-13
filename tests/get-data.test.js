@@ -23,7 +23,7 @@ describe('getData', () => {
         const filepath = path.join(__dirname, 'get-data.xlsx')
         const isFirstRowHeaders = true;
 
-        const result = await xlsx.getData(filepath, isFirstRowHeaders, func)
+        const result = await xlsx.readFile(filepath, isFirstRowHeaders, func)
         expect(result).toBeTruthy();
         done();
     })
