@@ -4,8 +4,7 @@
       'target_name': 'xlsxio',
       'sources': [
         'cpp/init.cpp',
-        'cpp/getSheetNames.cpp',
-        'cpp/getData.cpp',
+        'cpp/AsyncReader.cpp',
         'cpp/xlsx.cpp',
         'cpp/third-party/xlsxio/lib/xlsxio_read.c',
         'cpp/third-party/xlsxio/lib/xlsxio_read_sharedstrings.c',
