@@ -8,7 +8,7 @@ namespace xlsx
     class AsyncError : public Napi::AsyncWorker
     {
     public:
-        ErrorAsyncWorker( const Napi::Function& callback, const std::string& message );
+        AsyncError( const Napi::Function& callback, const std::string& message );
 
     protected:
         void Execute() override;

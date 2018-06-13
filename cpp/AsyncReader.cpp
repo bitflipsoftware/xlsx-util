@@ -1,4 +1,5 @@
 #include "AsyncReader.h"
+#include "XlsxReaderFunctions.h"
 
 namespace xlsx
 {
@@ -16,14 +17,13 @@ namespace xlsx
     void
     AsyncReader::Execute()
     {
-        // TODO - everything 
+        myResult = extractAllData( this->Env(), myFilename, myHasHeaders, myHeaderTransform );
     }
 
 
     void
     AsyncReader::OnOK()
     {
-        // return successful values here
         this->Callback().MakeCallback( this->Receiver().Value(), { this->Env().Null(), myResult } );
     }
 
@@ -31,7 +31,6 @@ namespace xlsx
     void
     AsyncReader::OnError( const Napi::Error& e )
     {
-        // return error here
         this->Callback().MakeCallback( this->Receiver().Value(), { e.Value(), this->Env().Undefined() } );
     }
 }

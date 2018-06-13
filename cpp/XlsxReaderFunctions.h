@@ -1,7 +1,5 @@
+#pragma once
 #include "napi.h"
-#include "node_api.h"
-#include "toss.h"
-#include "str.h"
 #include "xlsx.h"
 #include "xlsxio_read.h"
 
@@ -13,7 +11,7 @@
 #include <map>
 #include <vector>
 
-namespace iq
+namespace xlsx
 {
     std::string numtolet( int num );
     // int lettonum( const std::string& let );
@@ -24,7 +22,8 @@ namespace iq
     std::string findHeaderName( int columnIndex, std::map<int, std::string>& ioHeaders );
 
 
-    Napi::Array getDataAsync( Napi::Env& env, const std::string& filename, bool hasHeaders, Napi::Function& transform )
+    inline Napi::Array
+    extractAllData( Napi::Env env, const std::string& filename, bool hasHeaders, Napi::Function transform )
     {
         std::cout << "begin getDataAsync" << std::endl;
         iq::XlsxReader xreader{ filename };
@@ -49,7 +48,8 @@ namespace iq
     }
 
 
-    Napi::Array extractAllRows( Napi::Env& env, const char* sheetname, bool hasHeaders, iq::XlsxReader& xreader, std::map<int, std::string>& ioHeaders, Napi::Function& transform )
+    inline Napi::Array
+    extractAllRows( Napi::Env& env, const char* sheetname, bool hasHeaders, iq::XlsxReader& xreader, std::map<int, std::string>& ioHeaders, Napi::Function& transform )
     {
         std::cout << "begin extractAllRows" << std::endl;
         auto returnArr = Napi::Array::New( env );
@@ -118,7 +118,8 @@ namespace iq
     }
 
 
-    std::string findHeaderName( int columnIndex, std::map<int, std::string>& ioHeaders )
+    inline std::string
+    findHeaderName( int columnIndex, std::map<int, std::string>& ioHeaders )
     {
         std::cout << "begin findHeaderName" << std::endl;
         const auto iter = ioHeaders.find( columnIndex );
@@ -134,7 +135,8 @@ namespace iq
     }
 
 
-    Napi::Object extractRow( Napi::Env& env, xlsxioreadersheet sheet, std::map<int, std::string>& ioHeaders )
+    inline Napi::Object
+    extractRow( Napi::Env& env, xlsxioreadersheet sheet, std::map<int, std::string>& ioHeaders )
     {
         std::cout << "begin extractRow" << std::endl;
         char* valueCstr = nullptr;
@@ -153,7 +155,8 @@ namespace iq
     }
 
 
-    std::vector<std::string> extractHeaders( Napi::Env& env, xlsxioreadersheet sheet )
+    inline std::vector<std::string>
+    extractHeaders( Napi::Env& env, xlsxioreadersheet sheet )
     {
         std::cout << "begin extractHeaders" << std::endl;
         char* valueCstr = nullptr;
@@ -170,7 +173,8 @@ namespace iq
     }
 
 
-    Napi::Value extractValue( Napi::Env& env, char*& cstr )
+    inline Napi::Value
+    extractValue( Napi::Env& env, char*& cstr )
     {
         std::cout << "begin extractValue" << std::endl;
         // TODO - convert numbers to numbers
@@ -183,55 +187,55 @@ namespace iq
     }
 
 
-    Napi::Promise getData( const Napi::CallbackInfo& info )
-    {
-        std::cout << "begin getData" << std::endl;
-        Napi::Env env = info.Env();
+    // Napi::Promise getData( const Napi::CallbackInfo& info )
+    // {
+    //     std::cout << "begin getData" << std::endl;
+    //     Napi::Env env = info.Env();
 
-        auto deferred = Napi::Promise::Deferred::New(env);
+    //     auto deferred = Napi::Promise::Deferred::New(env);
 
-        if ( info.Length() != 3 )
-        {
-            deferred.Reject( Napi::TypeError::New( env, "three arguments are required: string filename, bool isFirstRowHeaders, object options").Value() );
-            return deferred.Promise();
-        }
-        else if( !info[0].IsString()  )
-        {
-            deferred.Reject( Napi::TypeError::New( env, "the first argument must be a string: filename").Value() );
-            return deferred.Promise();
-        }
-        else if( !info[1].IsBoolean()  )
-        {
-            deferred.Reject( Napi::TypeError::New( env, "the second argument must be a boolean: isFirstRowHeaders").Value() );
-            return deferred.Promise();
-        }
-        else if( !info[2].IsFunction() )
-        {
-            deferred.Reject( Napi::TypeError::New( env, "the third argument must be an object which takes an array or strings and returns an array of string").Value() );
-            return deferred.Promise();
-        }
+    //     if ( info.Length() != 3 )
+    //     {
+    //         deferred.Reject( Napi::TypeError::New( env, "three arguments are required: string filename, bool isFirstRowHeaders, object options").Value() );
+    //         return deferred.Promise();
+    //     }
+    //     else if( !info[0].IsString()  )
+    //     {
+    //         deferred.Reject( Napi::TypeError::New( env, "the first argument must be a string: filename").Value() );
+    //         return deferred.Promise();
+    //     }
+    //     else if( !info[1].IsBoolean()  )
+    //     {
+    //         deferred.Reject( Napi::TypeError::New( env, "the second argument must be a boolean: isFirstRowHeaders").Value() );
+    //         return deferred.Promise();
+    //     }
+    //     else if( !info[2].IsFunction() )
+    //     {
+    //         deferred.Reject( Napi::TypeError::New( env, "the third argument must be an object which takes an array or strings and returns an array of string").Value() );
+    //         return deferred.Promise();
+    //     }
         
 
-        auto headerTransformFunc = info[2].ToObject().As<Napi::Function>();
+    //     auto headerTransformFunc = info[2].ToObject().As<Napi::Function>();
 
-        const std::initializer_list<napi_value> myArgs{ Napi::Array::New( env ) };
-        auto x = info[2].ToObject().As<Napi::Function>().Call( env.Global(), myArgs );
-        // auto resultValue = transform.Call(  );
+    //     const std::initializer_list<napi_value> myArgs{ Napi::Array::New( env ) };
+    //     auto x = info[2].ToObject().As<Napi::Function>().Call( env.Global(), myArgs );
+    //     // auto resultValue = transform.Call(  );
 
-        const auto filename = info[0].ToString().Utf8Value();
-        std::future<Napi::Array> fut = std::async( std::launch::async, getDataAsync, std::ref( env ), filename, info[1].ToBoolean(), std::ref( headerTransformFunc ) );
+    //     const auto filename = info[0].ToString().Utf8Value();
+    //     std::future<Napi::Array> fut = std::async( std::launch::async, getDataAsync, std::ref( env ), filename, info[1].ToBoolean(), std::ref( headerTransformFunc ) );
 
-        auto returnArr = fut.get();
+    //     auto returnArr = fut.get();
 
-        if( returnArr.Length() == 0 )
-        {
-            deferred.Reject( Napi::TypeError::New( env, "xlsx file could not be opened" ).Value() );
-            return deferred.Promise();
-        }
+    //     if( returnArr.Length() == 0 )
+    //     {
+    //         deferred.Reject( Napi::TypeError::New( env, "xlsx file could not be opened" ).Value() );
+    //         return deferred.Promise();
+    //     }
 
-        deferred.Resolve( returnArr );
-        return deferred.Promise();
-    }
+    //     deferred.Resolve( returnArr );
+    //     return deferred.Promise();
+    // }
 
 
     std::string numtolet( int num )

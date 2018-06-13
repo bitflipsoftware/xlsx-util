@@ -5,6 +5,8 @@
       'sources': [
         'cpp/init.cpp',
         'cpp/AsyncReader.cpp',
+        'cpp/AsyncError.cpp',
+        'cpp/readXlsxAsync',
         'cpp/xlsx.cpp',
         'cpp/third-party/xlsxio/lib/xlsxio_read.c',
         'cpp/third-party/xlsxio/lib/xlsxio_read_sharedstrings.c',

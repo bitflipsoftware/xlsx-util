@@ -4,7 +4,7 @@ namespace xlsx
 {
     AsyncError::AsyncError( const Napi::Function& callback, const std::string& message )
     : Napi::AsyncWorker{ callback }
-    , error{ error }
+    , myMessage{ message }
     {
 
     }
