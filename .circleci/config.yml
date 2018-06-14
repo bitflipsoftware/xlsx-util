@@ -3,13 +3,16 @@
 # Check https://circleci.com/docs/2.0/language-javascript/ for more details
 #
 version: 2
+
 dependencies:
   pre:
     - sudo apt-get update; sudo apt-get install -y build-essential
     - sudo sudo apt-get install -y cmake
 
 jobs:
+
   build:
+    resource_class: small
     docker:
       # specify the version you desire here
       - image: circleci/node:9.8
@@ -26,7 +29,7 @@ jobs:
 
       - run:
           name: Install Gyp Compiler
-          command: npm install -g node-gyp
+          command: sudo npm install -g node-gyp
 
       # Download and cache dependencies
       - restore_cache:
