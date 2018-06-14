@@ -14,7 +14,6 @@
       ],
       'defines': [ 'USE_MINIZIP' ],
       'include_dirs': [
-        '<!(node -e "require(\'nan\')")',
         'cpp/third-party/xlsxio/include',
         'cpp/third-party/xlsxio/lib',
         'cpp/third-party/zlib-gyp/contrib/minizip',
