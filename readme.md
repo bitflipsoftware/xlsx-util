@@ -36,4 +36,27 @@ Given an xlsx file like this
 
 We will get an array of objects like this:
 
+```
+[
+  {
+    "A": "Hello",
+    "B": "World"
+  },
+  {
+    "A": "1",
+    "B": "2",
+    "C": "4"
+  },
+  {
+    "A": "5",
+    "B": "6"
+  },
+  {
+    "A": "pp",
+    "B": "or",
+    "C": "8.5714285714285715E-2"
+  }
+]
+```
 
+Notice that we are skipping empty rows. This is configurable in the underlying xlsxio library, but we haven't exposed the configuration.
