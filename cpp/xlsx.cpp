@@ -4,9 +4,6 @@
 
 namespace xlsx
 {
-
-    
-
     XlsxReader::XlsxReader( const std::string& inFilename )
     : myIsOk{ false }
     , myFilename{ inFilename }

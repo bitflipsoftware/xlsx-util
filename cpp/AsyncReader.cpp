@@ -16,7 +16,18 @@ namespace xlsx
     void
     AsyncReader::Execute()
     {
-        myData = extractAllData( myFilename );
+        try
+        {
+            myData = extractAllData( myFilename );
+        }
+        catch( std::exception& ex )
+        {
+            SetError( ex.what() );
+        }
+        catch( ... )
+        {
+            SetError( "an unknown exception occurred during 'myData = extractAllData( myFilename );'");
+        }
     }
 
 
