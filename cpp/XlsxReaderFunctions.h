@@ -21,7 +21,6 @@ namespace xlsx
     inline Table
     extractAllData( const std::string& filename )
     {
-        std::cout << "begin getDataAsync" << std::endl;
         xlsx::XlsxReader xreader{ filename };
 
         if( !xreader.getIsOk() )
@@ -39,7 +38,6 @@ namespace xlsx
     inline Table
     extractAllRows( const char* sheetname, xlsx::XlsxReader& xreader, std::map<int, std::string>& ioHeaders )
     {
-        std::cout << "begin extractAllRows" << std::endl;
         Table tbl;
         xlsxioreadersheet sheet = nullptr;
 
@@ -61,7 +59,6 @@ namespace xlsx
     inline Row
     extractRow( xlsxioreadersheet sheet, std::map<int, std::string>& ioHeaders )
     {
-        std::cout << "begin extractRow" << std::endl;
         char* valueCstr = nullptr;
         Row row{};
         

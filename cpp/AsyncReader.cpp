@@ -11,12 +11,6 @@ namespace xlsx
     {
 
     }
-
-
-    AsyncReader::~AsyncReader()
-    {
-        std::cout << "AsyncReader destructor" << std::endl;
-    }
     
 
     void

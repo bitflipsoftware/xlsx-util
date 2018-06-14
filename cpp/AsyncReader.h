@@ -8,7 +8,6 @@ namespace xlsx
     {
     public:
         AsyncReader( const std::string& filename, const Napi::Function& callback );
-        virtual ~AsyncReader();
 
     protected:
         void Execute() override;
