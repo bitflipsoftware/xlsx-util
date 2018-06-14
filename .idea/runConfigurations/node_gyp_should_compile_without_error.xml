@@ -1,0 +1,25 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="node-gyp.should compile without error" type="JavaScriptTestRunnerJest" factoryName="Jest" nameIsGenerated="true">
+    <node-interpreter value="project" />
+    <node-options value="" />
+    <working-dir value="$PROJECT_DIR$/tests" />
+    <envs />
+    <scope-kind value="TEST" />
+    <test-file value="$PROJECT_DIR$/tests/basic.test.js" />
+    <test-names>
+      <test-name value="node-gyp" />
+      <test-name value="should compile without error" />
+    </test-names>
+    <method>
+      <option name="NpmBeforeRunTask" enabled="true">
+        <package-json value="$PROJECT_DIR$/package.json" />
+        <command value="run" />
+        <scripts>
+          <script value="compile" />
+        </scripts>
+        <node-interpreter value="project" />
+        <envs />
+      </option>
+    </method>
+  </configuration>
+</component>
