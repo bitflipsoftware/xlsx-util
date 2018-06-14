@@ -15,16 +15,14 @@ namespace xlsx
     using Row = std::vector<std::string>;
     using Table = std::vector<Row>;
 
-    // std::string numtolet( int num );
     Row extractRow( xlsxioreadersheet sheet, std::map<int, std::string>& ioHeaders );
-    Table extractAllRows( const char* sheetname, iq::XlsxReader& xreader, std::map<int, std::string>& ioHeaders );
-
+    Table extractAllRows( const char* sheetname, xlsx::XlsxReader& xreader, std::map<int, std::string>& ioHeaders );
 
     inline Table
     extractAllData( const std::string& filename )
     {
         std::cout << "begin getDataAsync" << std::endl;
-        iq::XlsxReader xreader{ filename };
+        xlsx::XlsxReader xreader{ filename };
 
         if( !xreader.getIsOk() )
         {
@@ -33,15 +31,13 @@ namespace xlsx
 
         const char* sheetname = nullptr;
         std::map<int, std::string> headers;
-        std::cout << "about to call extractAllRows from getDataAsync" << std::endl;
         Table tbl = extractAllRows( sheetname, xreader, headers );
-        std::cout << "executing return returnArr from getDataAsync" << std::endl;
         return tbl;
     }
 
 
     inline Table
-    extractAllRows( const char* sheetname, iq::XlsxReader& xreader, std::map<int, std::string>& ioHeaders )
+    extractAllRows( const char* sheetname, xlsx::XlsxReader& xreader, std::map<int, std::string>& ioHeaders )
     {
         std::cout << "begin extractAllRows" << std::endl;
         Table tbl;
@@ -80,43 +76,5 @@ namespace xlsx
 
         return row;
     }
-
-
-    // std::string numtolet( int num )
-    // {
-    //     std::cout << "begin numtolet" << std::endl;
-    //     std::stringstream ss;
-    //     std::string result;
-    //     int i = 0;
-        
-    //     while( num > 0 )
-    //     {
-    //         int rem = num % 26;
-            
-    //         // If remainder is 0, then a 'Z' must be there in output
-    //         if( rem == 0 )
-    //         {
-    //             ss << std::string{ 'Z' };
-    //             ++i;
-    //             num = ( num / 26 ) - 1;
-    //         }
-    //         else // If remainder is non-zero
-    //         {
-    //             const char a = 'A';
-    //             const char remC = static_cast<char>( rem );
-    //             const char remCm = remC - static_cast<char>( 1 );
-    //             const char theC = a + remCm;
-    //             ss << std::string{ theC };
-    //             ++i;
-    //             num = num / 26;
-    //         }
-    //     }
-        
-    //     result = ss.str();
-        
-    //     // Reverse the string and print result
-    //     std::reverse( std::begin(result), std::end(result) );
-    //     return result;
-    // }
 }
 

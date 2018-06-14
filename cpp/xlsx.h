@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-namespace iq
+namespace xlsx
 {
     class XlsxReader
     {
