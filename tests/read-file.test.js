@@ -29,3 +29,15 @@ describe('readFile', () => {
         done();
     })
 })
+
+describe('readFile', () => {
+    it('should throw on bad filename', async (done) => {
+        expect.assertions(1)
+
+        const filepath = path.join(__dirname, 'badfilename')
+        let error = null
+        await xlsx.readFile(filepath).then().catch((err)=>{error=err})
+        expect(error).toBeTruthy()
+        done();
+    })
+})

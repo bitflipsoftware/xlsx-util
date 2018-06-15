@@ -25,7 +25,9 @@ namespace xlsx
 
         if( !xreader.getIsOk() )
         {
-            return Table{};
+            std::stringstream ss;
+            ss << "xlsx-util: the file '" << filename << "' could not be opened" << std::endl;
+            throw std::runtime_error{ ss.str() };
         }
 
         const char* sheetname = nullptr;
