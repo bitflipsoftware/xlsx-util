@@ -7,7 +7,7 @@ namespace xlsx
     AsyncReader::AsyncReader( const std::string& filename, const Napi::Function& callback )
     : Napi::AsyncWorker{ callback }
     , myFilename{ filename }
-    , myData{}
+    , mySheet{}
     {
 
     }
@@ -18,7 +18,7 @@ namespace xlsx
     {
         try
         {
-            myData = extractAllData( myFilename );
+            mySheet = extractAllData( myFilename );
         }
         catch( std::exception& ex )
         {
@@ -26,7 +26,7 @@ namespace xlsx
         }
         catch( ... )
         {
-            SetError( "an unknown exception occurred during 'myData = extractAllData( myFilename );'");
+            SetError( "xlsx-util: an unknown exception occurred during 'myData = extractAllData( myFilename );'");
         }
     }
 
@@ -35,17 +35,35 @@ namespace xlsx
     AsyncReader::OnOK()
     {
         Napi::Array arr = Napi::Array::New( Env() );
+        const int numRows = mySheet.getNumRows();
 
-        for( size_t i = 0; i < myData.size(); ++i )
+        for( int i = 0; i < numRows; ++i )
         {
-            const auto row = myData.at( i );
+            const auto row = mySheet.getRow( i );
             Napi::Object obj = Napi::Object::New( Env() );
 
             for( size_t j = 0; j < row.size(); ++j )
             {
                 const auto val = row.at( j );
                 const auto let = numtolet( j + 1 );
-                obj.Set( Napi::String::New( Env(), let ), Napi::String::New( Env(), val ) );
+                
+                if( val.getIsString() )
+                {
+
+                    obj.Set( Napi::String::New( Env(), let ), Napi::String::New( Env(), val.getString() ) );
+                }
+                else if( val.getIsInt() )
+                {
+                    obj.Set( Napi::String::New( Env(), let ), Napi::Number::New( Env(), static_cast<double>( val.getInt() ) ) );
+                }
+                else if( val.getIsDouble() )
+                {
+                    obj.Set( Napi::String::New( Env(), let ), Napi::Number::New( Env(), val.getDouble() ) );
+                }
+                else
+                {
+                    throw std::runtime_error("xlsx-util: error occurred in type conversion");
+                }
             }
 
             arr[i] = obj;

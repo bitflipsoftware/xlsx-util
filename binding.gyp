@@ -7,6 +7,8 @@
         'cpp/AsyncReader.cpp',
         'cpp/AsyncError.cpp',
         'cpp/readXlsxAsync.cpp',
+        'cpp/Val.cpp',
+        'cpp/Sheet.cpp',
         'cpp/xlsx.cpp',
         'cpp/third-party/xlsxio/lib/xlsxio_read.c',
         'cpp/third-party/xlsxio/lib/xlsxio_read_sharedstrings.c',

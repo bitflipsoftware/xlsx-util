@@ -1,4 +1,5 @@
 #include "napi.h"
+#include "Sheet.h"
 #include <string>
 
 namespace xlsx
@@ -16,6 +17,6 @@ namespace xlsx
 
     private:
         std::string myFilename;
-        std::vector<std::vector<std::string>> myData;
+        Sheet mySheet;
     };
 }

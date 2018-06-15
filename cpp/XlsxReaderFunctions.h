@@ -1,6 +1,8 @@
 #pragma once
 #include "xlsx.h"
 #include "xlsxio_read.h"
+#include "Sheet.h"
+#include "Val.h"
 
 #include <iostream>
 #include <future>
@@ -12,13 +14,13 @@
 
 namespace xlsx
 {
-    using Row = std::vector<std::string>;
+    using Row = std::vector<Val>;
     using Table = std::vector<Row>;
 
     Row extractRow( xlsxioreadersheet sheet, std::map<int, std::string>& ioHeaders );
-    Table extractAllRows( const char* sheetname, xlsx::XlsxReader& xreader, std::map<int, std::string>& ioHeaders );
+    Sheet extractAllRows( const char* sheetname, xlsx::XlsxReader& xreader, std::map<int, std::string>& ioHeaders );
 
-    inline Table
+    inline Sheet
     extractAllData( const std::string& filename )
     {
         xlsx::XlsxReader xreader{ filename };
@@ -32,15 +34,15 @@ namespace xlsx
 
         const char* sheetname = nullptr;
         std::map<int, std::string> headers;
-        Table tbl = extractAllRows( sheetname, xreader, headers );
-        return tbl;
+        Sheet sh = extractAllRows( sheetname, xreader, headers );
+        return sh;
     }
 
 
-    inline Table
+    inline Sheet
     extractAllRows( const char* sheetname, xlsx::XlsxReader& xreader, std::map<int, std::string>& ioHeaders )
     {
-        Table tbl;
+        Sheet result;
         xlsxioreadersheet sheet = nullptr;
 
         if( ( sheet = xlsxioread_sheet_open( xreader.getReader(), sheetname, XLSXIOREAD_SKIP_EMPTY_ROWS ) ) != NULL )
@@ -48,13 +50,13 @@ namespace xlsx
             while( xlsxioread_sheet_next_row( sheet ) )
             {
                 auto row = extractRow( sheet, ioHeaders );
-                tbl.emplace_back( std::move( row ) );
+                result.addRow( std::move( row ) );
             }
 
             xlsxioread_sheet_close(sheet);
         }
 
-        return tbl;
+        return result;
     }
 
 
@@ -66,9 +68,10 @@ namespace xlsx
         
         while( ( valueCstr = xlsxioread_sheet_next_cell( sheet ) ) != NULL )
         {
-            
-            const std::string val{ valueCstr };
-            row.emplace_back( std::string{ valueCstr } );
+            const std::string str{ valueCstr };
+            Val v;
+            v.setParse( str );
+            row.emplace_back( std::move( v ) );
             free( valueCstr );
             valueCstr = nullptr;
         }
