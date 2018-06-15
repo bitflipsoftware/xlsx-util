@@ -62,7 +62,7 @@ namespace xlsx
                 }
                 else
                 {
-                    throw std::runtime_error("xlsx-util: error occurred in type conversion");
+                    obj.Set( Napi::String::New( Env(), let ), Napi::Value{ Env(), Env().Null() } );
                 }
             }
 

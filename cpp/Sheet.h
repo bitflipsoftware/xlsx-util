@@ -12,6 +12,7 @@ namespace xlsx
     public:
         Sheet();
         const std::vector<Val>& getRow( int index ) const;
+        std::vector<Val>* getMutableRow( int index );
         const std::vector<std::vector<Val>>& getData() const;
         int getNumRows() const;
         void addRow( std::vector<Val>&& row );

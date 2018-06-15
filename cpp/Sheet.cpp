@@ -17,6 +17,13 @@ namespace xlsx
     {
         return myData.at( static_cast<size_t>( index ) );
     }
+
+
+    std::vector<Val>*
+    Sheet::getMutableRow( int index )
+    {
+        return &( *( myData.begin() + static_cast<size_t>( index ) ) );
+    }
     
 
     const std::vector<std::vector<Val>>&

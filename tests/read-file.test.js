@@ -3,7 +3,7 @@ const path = require('path')
 
 describe('readFile', () => {
     it('should return data', async (done) => {
-        expect.assertions(13)
+        expect.assertions(14)
 
         const filepath = path.join(__dirname, 'small.xlsx')
         const result = await xlsx.readFile(filepath)
@@ -21,6 +21,7 @@ describe('readFile', () => {
 
         expect(result[2].A).toBe(5.5)
         expect(result[2].B).toBe(6)
+        expect(result[2].C).toBeNull()
 
         expect(result[3].A).toBe('pp')
         expect(result[3].B).toBe('or')
