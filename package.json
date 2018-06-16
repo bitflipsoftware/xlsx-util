@@ -5,8 +5,8 @@
   "main": "gyp/index.js",
   "scripts": {
     "install": "node-gyp clean && node-gyp configure && node-gyp build",
-    "compile": "node-gyp clean && node-gyp configure && node-gyp build",
-    "test": "CI=true npm run compile && node ./node_modules/jest/bin/jest.js --env=jsdom --no-cache --runInBand"
+    "compile:debug": "node-gyp clean && node-gyp configure --debug && node-gyp build --debug",
+    "test": "CI=true npm run compile:debug && node ./node_modules/jest/bin/jest.js --env=jsdom --no-cache --runInBand"
   },
   "repository": {
     "type": "git",

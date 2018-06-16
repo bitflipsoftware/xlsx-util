@@ -1,6 +1,7 @@
 #include "napi.h"
 #include "Sheet.h"
 #include <string>
+#include <memory>
 
 namespace xlsx
 {
@@ -8,7 +9,7 @@ namespace xlsx
     class AsyncReader : public Napi::AsyncWorker
     {
     public:
-        AsyncReader( const std::string& filename, bool hasHeaders, Napi::Function transform, std::set<std::string> deletes, const Napi::Function& callback );
+        AsyncReader( std::unique_ptr<Napi::EscapableHandleScope>&& scope, const std::string& filename, bool hasHeaders, Napi::Function transform, std::set<std::string> deletes, const Napi::Function& callback );
 
     protected:
         void Execute() override;
@@ -21,5 +22,6 @@ namespace xlsx
         Napi::Function myTransform;
         std::set<std::string> myDeletes;
         Sheet mySheet;
+        std::unique_ptr<Napi::EscapableHandleScope> myScopeUptr;
     };
 }

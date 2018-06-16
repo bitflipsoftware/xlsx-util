@@ -9,7 +9,8 @@ namespace xlsx
     void readXlsxAsync( const Napi::CallbackInfo& info )
     {
         Napi::Env env = info.Env();
-        Napi::HandleScope scope{ env };
+        // std::unique_ptr<Napi::HandleScope> scope{ new Napi::HandleScope{ env } };
+        std::unique_ptr<Napi::EscapableHandleScope> scope = nullptr;
 
         // we need to check for the presence of a client callback function
         // and if we do not have one then we must raise a synchronous error
@@ -66,7 +67,7 @@ namespace xlsx
 
         const std::string filename = info[0].As<Napi::String>().Utf8Value();
         const bool hasHeaders = info[1].ToBoolean();
-        AsyncReader* reader = new AsyncReader{ filename, hasHeaders, transformFun, columnsToDelete, cb };
+        AsyncReader* reader = new AsyncReader{ std::move( scope ), filename, hasHeaders, transformFun, columnsToDelete, cb };
         reader->Queue();
     }
 }
