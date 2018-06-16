@@ -45,4 +45,18 @@ namespace xlsx
     {
         myData.emplace_back( std::move( row ) );
     }
+
+
+    void
+    Sheet::setHeaders( std::vector<std::string>&& headers )
+    {
+        myHeaders = std::move( headers );
+    }
+
+
+    const std::vector<std::string>&
+    Sheet::getHeaders() const
+    {
+        return myHeaders;
+    }
 }

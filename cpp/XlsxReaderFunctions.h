@@ -3,6 +3,7 @@
 #include "xlsxio_read.h"
 #include "Sheet.h"
 #include "Val.h"
+#include "numtolet.h"
 
 #include <iostream>
 #include <future>
@@ -18,10 +19,10 @@ namespace xlsx
     using Table = std::vector<Row>;
 
     Row extractRow( xlsxioreadersheet sheet, int& ioRowSize );
-    Sheet extractAllRows( const char* sheetname, xlsx::XlsxReader& xreader );
+    Sheet extractAllRows( const char* sheetname, xlsx::XlsxReader& xreader, bool hasHeaders );
 
     inline Sheet
-    extractAllData( const std::string& filename )
+    extractAllData( const std::string& filename, bool hasHeaders )
     {
         xlsx::XlsxReader xreader{ filename };
 
@@ -33,19 +34,18 @@ namespace xlsx
         }
 
         const char* sheetname = nullptr;
-        Sheet sh = extractAllRows( sheetname, xreader );
+        Sheet sh = extractAllRows( sheetname, xreader, hasHeaders );
         return sh;
     }
 
 
     inline Sheet
-    extractAllRows( const char* sheetname, xlsx::XlsxReader& xreader )
+    extractAllRows( const char* sheetname, xlsx::XlsxReader& xreader, bool hasHeaders )
     {
         Sheet result;
         xlsxioreadersheet sheet = nullptr;
         int maxRowSize = 0;
         bool isFirstRow = true;
-        const bool doParseHeaders = false;
         std::vector<std::string> headers;
 
         if( ( sheet = xlsxioread_sheet_open( xreader.getReader(), sheetname, XLSXIOREAD_SKIP_EMPTY_ROWS ) ) != NULL )
@@ -56,9 +56,24 @@ namespace xlsx
                 auto row = extractRow( sheet, rowSize );
                 maxRowSize = std::max( maxRowSize, rowSize );
 
-                if( isFirstRow && doParseHeaders )
+                if( isFirstRow && hasHeaders )
                 {
                     isFirstRow = false;
+                    int headerIndex = 0;
+
+                    for( const auto& val : row )
+                    {
+                        if( val.getIsString() )
+                        {
+                            headers.push_back( val.getString() );
+                        }
+                        else
+                        {
+                            headers.push_back( numtolet( headerIndex + 1 ) );
+                        }
+
+                        ++headerIndex;
+                    }
                 }
                 else
                 {
@@ -70,10 +85,9 @@ namespace xlsx
         }
 
         const int numRows = result.getNumRows();
-                // throw std::runtime_error( std::to_string(maxRowSize) );
+        
         for( int i = 0; i < numRows; ++i )
         {
-            // std::cout << "std::vector<Val>* row = result.getMutableRow( i );" << std::endl;
             std::vector<Val>* row = result.getMutableRow( i );
             while( static_cast<int>( row->size() ) < maxRowSize )
             {
@@ -82,6 +96,14 @@ namespace xlsx
             }
         }
 
+        while( headers.size() < static_cast<size_t>( maxRowSize ) )
+        {
+            const int nextColumnIndex = static_cast<int>( headers.size() );
+            auto nextColumnLetters = numtolet( nextColumnIndex + 1 );
+            headers.emplace_back( std::move( nextColumnLetters ) );
+        }
+
+        result.setHeaders( std::move( headers ) );
         return result;
     }
 

@@ -4,9 +4,11 @@
 
 namespace xlsx
 {
-    AsyncReader::AsyncReader( const std::string& filename, const Napi::Function& callback )
+    AsyncReader::AsyncReader( const std::string& filename, bool hasHeaders, Napi::Function transform, const Napi::Function& callback )
     : Napi::AsyncWorker{ callback }
     , myFilename{ filename }
+    , myHasHeaders{ hasHeaders }
+    , myTransform{ transform }
     , mySheet{}
     {
 
@@ -18,7 +20,7 @@ namespace xlsx
     {
         try
         {
-            mySheet = extractAllData( myFilename );
+            mySheet = extractAllData( myFilename, myHasHeaders );
         }
         catch( std::exception& ex )
         {
@@ -45,7 +47,7 @@ namespace xlsx
             for( size_t j = 0; j < row.size(); ++j )
             {
                 const auto val = row.at( j );
-                const auto let = numtolet( j + 1 );
+                const auto let = mySheet.getHeaders().at( j );
                 
                 if( val.getIsString() )
                 {

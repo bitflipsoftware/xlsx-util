@@ -16,6 +16,8 @@ namespace xlsx
         const std::vector<std::vector<Val>>& getData() const;
         int getNumRows() const;
         void addRow( std::vector<Val>&& row );
+        void setHeaders( std::vector<std::string>&& headers );
+        const std::vector<std::string>& getHeaders() const;
 
     private:
         std::vector<std::string> myHeaders;
