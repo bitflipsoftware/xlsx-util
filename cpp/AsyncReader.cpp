@@ -4,11 +4,12 @@
 
 namespace xlsx
 {
-    AsyncReader::AsyncReader( const std::string& filename, bool hasHeaders, Napi::Function transform, const Napi::Function& callback )
+    AsyncReader::AsyncReader( const std::string& filename, bool hasHeaders, Napi::Function transform, std::set<std::string> deletes, const Napi::Function& callback )
     : Napi::AsyncWorker{ callback }
     , myFilename{ filename }
     , myHasHeaders{ hasHeaders }
     , myTransform{ transform }
+    , myDeletes{ std::move( deletes ) }
     , mySheet{}
     {
 
@@ -38,6 +39,36 @@ namespace xlsx
     {
         Napi::Array arr = Napi::Array::New( Env() );
         const int numRows = mySheet.getNumRows();
+        auto headers = mySheet.getHeaders();
+
+        if( !myTransform.IsNull() )
+        {
+            Napi::Array headersJs = Napi::Array::New( Env() );
+            for( size_t x = 0; x < headers.size(); ++ x )
+            {
+                headersJs[x] = Napi::String::New( Env(), headers.at( x ) );
+            }
+
+            auto transformedVal = myTransform.Call( { headersJs } );
+            if( transformedVal.IsArray() )
+            {
+                auto transformedArr = transformedVal.As<Napi::Array>();
+                const auto transformedLen = transformedArr.Length();
+
+                if( transformedLen == headers.size() )
+                {
+                    for( size_t z = 0; z < transformedLen; ++z )
+                    {
+                        auto h = transformedArr.Get( z );
+                        if( h.IsString() )
+                        {
+                            headers.at( z ) = h.As<Napi::String>().Utf8Value();
+                        }
+                    }
+                }
+            }
+        }
+
 
         for( int i = 0; i < numRows; ++i )
         {
@@ -51,7 +82,6 @@ namespace xlsx
                 
                 if( val.getIsString() )
                 {
-
                     obj.Set( Napi::String::New( Env(), let ), Napi::String::New( Env(), val.getString() ) );
                 }
                 else if( val.getIsInt() )

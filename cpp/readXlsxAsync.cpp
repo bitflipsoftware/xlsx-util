@@ -2,6 +2,7 @@
 #include "readXlsxAsync.h"
 #include "AsyncReader.h"
 #include "AsyncError.h"
+#include <set>
 
 namespace xlsx
 {
@@ -12,19 +13,19 @@ namespace xlsx
 
         // we need to check for the presence of a client callback function
         // and if we do not have one then we must raise a synchronous error
-        if( info.Length() != 4 )
+        if( info.Length() != 5 )
         {
             Napi::TypeError::New(env, "xlsx-util: invalid argument count - should be 4").ThrowAsJavaScriptException();
             return;
         }
 
-        if( !info[3].IsFunction() )
+        if( !info[4].IsFunction() )
         {
             Napi::TypeError::New(env, "xlsx-util: invalid callback function [arg3]").ThrowAsJavaScriptException();
             return;
         }
 
-        Napi::Function cb = info[3].As<Napi::Function>();
+        Napi::Function cb = info[4].As<Napi::Function>();
 
         if( !info[0].IsString() )
         {
@@ -47,9 +48,25 @@ namespace xlsx
             transformFun = info[2].As<Napi::Function>();
         }
 
+        std::set<std::string> columnsToDelete;
+
+        if( !info[3].IsNull() && info[3].IsArray() )
+        {
+            auto deletes = info[3].As<Napi::Array>();
+
+            for( int i = 0; i < deletes.Length(); ++i )
+            {
+                auto value = deletes.Get( i );
+                if( value.IsString() )
+                {
+                    columnsToDelete.insert( value.As<Napi::String>().Utf8Value() );
+                }
+            }
+        }
+
         const std::string filename = info[0].As<Napi::String>().Utf8Value();
         const bool hasHeaders = info[1].ToBoolean();
-        AsyncReader* reader = new AsyncReader{ filename, hasHeaders, transformFun, cb };
+        AsyncReader* reader = new AsyncReader{ filename, hasHeaders, transformFun, columnsToDelete, cb };
         reader->Queue();
     }
 }

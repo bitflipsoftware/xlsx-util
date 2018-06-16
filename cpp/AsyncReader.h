@@ -8,7 +8,7 @@ namespace xlsx
     class AsyncReader : public Napi::AsyncWorker
     {
     public:
-        AsyncReader( const std::string& filename, bool hasHeaders, Napi::Function transform, const Napi::Function& callback );
+        AsyncReader( const std::string& filename, bool hasHeaders, Napi::Function transform, std::set<std::string> deletes, const Napi::Function& callback );
 
     protected:
         void Execute() override;
@@ -19,6 +19,7 @@ namespace xlsx
         std::string myFilename;
         bool myHasHeaders;
         Napi::Function myTransform;
+        std::set<std::string> myDeletes;
         Sheet mySheet;
     };
 }

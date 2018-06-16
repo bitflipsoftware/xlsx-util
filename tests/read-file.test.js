@@ -42,3 +42,34 @@ describe('readFile', () => {
         done();
     })
 })
+
+
+describe('readFileWithHeaders', () => {
+    it('should return data', async (done) => {
+        expect.assertions(12)
+
+        const filepath = path.join(__dirname, 'small.xlsx')
+        const result = await xlsx.readFileWithHeaders(filepath)
+
+        expect(result).toBeTruthy();
+        expect(Array.isArray(result)).toBeTruthy();
+        expect(result.length).toBe(3)
+
+        let r = 0
+        expect(result[r].Hello).toBe(1)
+        expect(result[r].World).toBe(2)
+        expect(result[r].C).toBe(4)
+
+        r = 1
+        expect(result[r].Hello).toBe(5.5)
+        expect(result[r].World).toBe(6)
+        expect(result[r].C).toBeNull()
+
+        r = 2
+        expect(result[r].Hello).toBe('pp')
+        expect(result[r].World).toBe('or')
+        expect(result[r].C).toBeCloseTo(0.07792207792207792, 10)
+
+        done();
+    })
+})
