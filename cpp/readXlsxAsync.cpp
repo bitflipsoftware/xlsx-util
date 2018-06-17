@@ -2,6 +2,7 @@
 #include "readXlsxAsync.h"
 #include "AsyncReader.h"
 #include "AsyncError.h"
+#include "Sheet.h"
 #include <set>
 
 // filepathString, doReadHeaders, headerTransformObj, columnsToDeleteArr, doPascalCase, pascalWords, (error, result) =>

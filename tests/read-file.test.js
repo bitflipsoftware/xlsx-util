@@ -111,3 +111,43 @@ describe('readFileWithHeaderTransform', () => {
         done();
     })
 })
+
+
+describe('readFileWithHeaderTransformAndDelete', () => {
+    it('should return data', async (done) => {
+        expect.assertions(12)
+
+        const filepath = path.join(__dirname, 'small.xlsx')
+
+        const transform = {
+            Hello: 'Bones',
+            World: 'Bish',
+            C: 'Fish'
+        }
+
+        const deletes = ['World']
+
+        const result = await xlsx.readFileWithHeaderTransformAndDelete(filepath, transform, deletes)
+
+        expect(result).toBeTruthy();
+        expect(Array.isArray(result)).toBeTruthy();
+        expect(result.length).toBe(3)
+
+        let r = 0
+        expect(result[r].Bones).toBe(1)
+        expect(result[r].Bish).toBeUndefined()
+        expect(result[r].Fish).toBe(4)
+
+        r = 1
+        expect(result[r].Bones).toBe(5.5)
+        expect(result[r].Bish).toBeUndefined()
+        expect(result[r].Fish).toBeNull()
+
+        r = 2
+        expect(result[r].Bones).toBe('pp')
+        expect(result[r].Bish).toBeUndefined()
+        expect(result[r].Fish).toBeCloseTo(0.07792207792207792, 10)
+
+        done();
+    })
+})

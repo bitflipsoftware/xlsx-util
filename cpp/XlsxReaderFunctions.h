@@ -15,9 +15,6 @@
 
 namespace xlsx
 {
-    using Row = std::vector<Val>;
-    using Table = std::vector<Row>;
-
     Row extractRow( xlsxioreadersheet sheet, int& ioRowSize );
     
     Sheet extractAllRows(
@@ -97,7 +94,7 @@ namespace xlsx
         
         for( int i = 0; i < numRows; ++i )
         {
-            std::vector<Val>* row = result.getMutableRow( i );
+            Row* row = result.getMutableRow( i );
             while( static_cast<int>( row->size() ) < maxRowSize )
             {
                 row = result.getMutableRow( i );

@@ -85,9 +85,10 @@ namespace xlsx
             const auto row = mySheet.getRow( i );
             Napi::Object obj = Napi::Object::New( Env() );
 
-            for( size_t j = 0; j < row.size(); ++j )
+            int j = 0;
+            for( auto cellIter = row.cbegin(); cellIter != row.cend(); ++cellIter, ++j )
             {
-                const auto val = row.at( j );
+                const auto val = *cellIter;
                 const auto let = mySheet.getHeaders().at( j );
                 
                 if( val.getIsString() )

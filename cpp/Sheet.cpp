@@ -12,21 +12,21 @@ namespace xlsx
     }
 
 
-    const std::vector<Val>&
+    const Row&
     Sheet::getRow( int index ) const
     {
         return myData.at( static_cast<size_t>( index ) );
     }
 
 
-    std::vector<Val>*
+    Row*
     Sheet::getMutableRow( int index )
     {
         return &( *( myData.begin() + static_cast<size_t>( index ) ) );
     }
     
 
-    const std::vector<std::vector<Val>>&
+    const Data&
     Sheet::getData() const
     {
         return myData;
@@ -41,7 +41,7 @@ namespace xlsx
 
 
     void
-    Sheet::addRow( std::vector<Val>&& row )
+    Sheet::addRow( Row&& row )
     {
         myData.emplace_back( std::move( row ) );
     }
