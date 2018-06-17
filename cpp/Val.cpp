@@ -111,6 +111,22 @@ namespace xlsx
     void
     Val::setParse( const std::string& val )
     {
+        if( val.empty() )
+        {
+            myType = ValType::None;
+            myString = std::string{};
+            myDouble = 0.0;
+            myInt = 0.0;
+            return;
+        }
+
+        int intVal = 0;
+        if( Val::isInteger( val, intVal ) )
+        {
+            setInt( intVal );
+            return;
+        }
+
         double doubleVal = 0.0;
 
         if( Val::isScientific( val, doubleVal ) )
@@ -128,13 +144,6 @@ namespace xlsx
         if( Val::isDecimal( val, doubleVal ) )
         {
             setDouble( doubleVal );
-            return;
-        }
-
-        int intVal = 0;
-        if( Val::isInteger( val, intVal ) )
-        {
-            setInt( intVal );
             return;
         }
 
@@ -198,23 +207,25 @@ namespace xlsx
     Val::isInteger( const std::string& inVal, int& outVal )
     {
         outVal = 0;
-        const std::string patternInt = R"([-]?[0-9]+)"; 
-        std::regex rxInt{ patternInt };
-        std::smatch matchInt;
-        const bool isInt = std::regex_search( inVal, matchInt, rxInt );
+        bool isFirstChar = true;
 
-        if( isInt )
+        for( const auto& c : inVal )
         {
-            if( matchInt.size() == 1 )
+            if( isFirstChar && c == '-' )
             {
-                const std::string i = matchInt[0];
-                const int num = std::stoi( i );
-                outVal = num;
-                return true;
+                isFirstChar = false;
+                continue;
             }
+            else if( !std::isdigit( static_cast<unsigned char>( c ) ) )
+            {
+                return false;
+            }
+
+            isFirstChar = false;
         }
 
-        return false;
+        outVal = std::stoi( inVal );
+        return true;
     }
 
 
