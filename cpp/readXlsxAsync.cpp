@@ -50,7 +50,25 @@ namespace xlsx
 
         if( !info[2].IsUndefined() && !info[2].IsNull() && info[2].IsObject() )
         {
-            // TODO - add the key value pairs to the transformMap
+            auto obj = info[2].As<Napi::Object>();
+            auto props = obj.GetPropertyNames();
+            auto propsLen = props.Length();
+
+            for( decltype(propsLen) p = 0; p < propsLen; ++p )
+            {
+                auto keyNapi = props.Get( p ).As<Napi::String>();
+                const std::string key = keyNapi.Utf8Value();
+                auto valNapiValue = obj.Get( keyNapi );
+                if( valNapiValue.IsString() )
+                {
+                    auto valNapi = valNapiValue.As<Napi::String>();
+                    const std::string val = valNapi.Utf8Value();
+                    if( !key.empty() && !val.empty() )
+                    {
+                        transformMap[key] = val;
+                    }
+                }
+            }
         }
 
         std::set<std::string> columnsToDelete;

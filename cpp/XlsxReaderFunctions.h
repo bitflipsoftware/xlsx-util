@@ -19,10 +19,15 @@ namespace xlsx
     using Table = std::vector<Row>;
 
     Row extractRow( xlsxioreadersheet sheet, int& ioRowSize );
-    Sheet extractAllRows( const char* sheetname, xlsx::XlsxReader& xreader, bool hasHeaders );
+    
+    Sheet extractAllRows(
+        const char* sheetname,
+        xlsx::XlsxReader& xreader,
+        bool hasHeaders,
+        const std::map<std::string, std::string>& headerTransformMap );
 
     inline Sheet
-    extractAllData( const std::string& filename, bool hasHeaders )
+    extractAllData( const std::string& filename, bool hasHeaders, const std::map<std::string, std::string>& headerTransformMap )
     {
         xlsx::XlsxReader xreader{ filename };
 
@@ -34,13 +39,17 @@ namespace xlsx
         }
 
         const char* sheetname = nullptr;
-        Sheet sh = extractAllRows( sheetname, xreader, hasHeaders );
+        Sheet sh = extractAllRows( sheetname, xreader, hasHeaders, headerTransformMap );
         return sh;
     }
 
 
     inline Sheet
-    extractAllRows( const char* sheetname, xlsx::XlsxReader& xreader, bool hasHeaders )
+    extractAllRows(
+        const char* sheetname,
+        xlsx::XlsxReader& xreader,
+        bool hasHeaders,
+        const std::map<std::string, std::string>& headerTransformMap )
     {
         Sheet result;
         xlsxioreadersheet sheet = nullptr;
@@ -102,6 +111,22 @@ namespace xlsx
             auto nextColumnLetters = numtolet( nextColumnIndex + 1 );
             headers.emplace_back( std::move( nextColumnLetters ) );
         }
+
+        if( !headerTransformMap.empty() )
+        {
+            for( auto it = headers.begin(); it != headers.end(); ++it )
+            {
+                const auto oldHeader = *it;
+                const auto findIter = headerTransformMap.find( oldHeader );
+
+                if( findIter != headerTransformMap.cend() )
+                {
+                    const auto newHeader = findIter->second;
+                    *it = newHeader;
+                }
+            }
+        }
+
 
         result.setHeaders( std::move( headers ) );
         return result;

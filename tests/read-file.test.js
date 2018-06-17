@@ -81,17 +81,10 @@ describe('readFileWithHeaderTransform', () => {
 
         const filepath = path.join(__dirname, 'small.xlsx')
 
-        const transform = (arr) => {
-            arr.forEach((h, i, a)  => {
-                if(h === 'Hello') {
-                    a[i] = 'Bones'
-                } else if (h === 'World') {
-                    a[i] = 'Bish'
-                } else if (h === 'C') {
-                    a[i] = 'Fish'
-                }
-            })
-            return arr
+        const transform = {
+            Hello: 'Bones',
+            World: 'Bish',
+            C: 'Fish'
         }
 
         const result = await xlsx.readFileWithHeaderTransform(filepath, transform)
@@ -101,19 +94,19 @@ describe('readFileWithHeaderTransform', () => {
         expect(result.length).toBe(3)
 
         let r = 0
-        expect(result[r].Hello).toBe(1)
-        expect(result[r].World).toBe(2)
-        expect(result[r].C).toBe(4)
+        expect(result[r].Bones).toBe(1)
+        expect(result[r].Bish).toBe(2)
+        expect(result[r].Fish).toBe(4)
 
         r = 1
-        expect(result[r].Hello).toBe(5.5)
-        expect(result[r].World).toBe(6)
-        expect(result[r].C).toBeNull()
+        expect(result[r].Bones).toBe(5.5)
+        expect(result[r].Bish).toBe(6)
+        expect(result[r].Fish).toBeNull()
 
         r = 2
-        expect(result[r].Hello).toBe('pp')
-        expect(result[r].World).toBe('or')
-        expect(result[r].C).toBeCloseTo(0.07792207792207792, 10)
+        expect(result[r].Bones).toBe('pp')
+        expect(result[r].Bish).toBe('or')
+        expect(result[r].Fish).toBeCloseTo(0.07792207792207792, 10)
 
         done();
     })
