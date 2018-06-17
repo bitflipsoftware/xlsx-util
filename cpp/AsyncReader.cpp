@@ -1,15 +1,28 @@
 #include "AsyncReader.h"
 #include "XlsxReaderFunctions.h"
 #include "numtolet.h"
+#include <iostream>
 
 namespace xlsx
 {
-    AsyncReader::AsyncReader( const std::string& filename, const Napi::Function& callback )
+    AsyncReader::AsyncReader( 
+            const std::string& filename,
+            bool hasHeaders,
+            std::map<std::string, std::string> transformMap,
+            std::set<std::string> deletes,
+            bool doPascalCase,
+            std::set<std::string> pascalWords,
+            const Napi::Function& callback )
     : Napi::AsyncWorker{ callback }
     , myFilename{ filename }
-    , myData{}
+    , myHasHeaders{ hasHeaders }
+    , myTransformMap{ transformMap }
+    , myDeletes{ deletes }
+    , myDoPascalCase{ doPascalCase }
+    , myPascalWords{ pascalWords }
+    , mySheet{}
     {
-
+        
     }
     
 
@@ -18,7 +31,7 @@ namespace xlsx
     {
         try
         {
-            myData = extractAllData( myFilename );
+            mySheet = extractAllData( myFilename, myHasHeaders, myTransformMap, myDeletes, myDoPascalCase, myPascalWords );
         }
         catch( std::exception& ex )
         {
@@ -26,26 +39,47 @@ namespace xlsx
         }
         catch( ... )
         {
-            SetError( "an unknown exception occurred during 'myData = extractAllData( myFilename );'");
+            SetError( "xlsx-util: an unknown exception occurred during 'myData = extractAllData( myFilename );'");
         }
     }
 
 
     void
     AsyncReader::OnOK()
-    {
+    {        
+        // myTransform = Napi::Value{ Env(), myTransform }.As<Napi::Function>();
         Napi::Array arr = Napi::Array::New( Env() );
+        const int numRows = mySheet.getNumRows();
+        auto headers = mySheet.getHeaders();
 
-        for( size_t i = 0; i < myData.size(); ++i )
+
+        for( int i = 0; i < numRows; ++i )
         {
-            const auto row = myData.at( i );
+            const auto row = mySheet.getRow( i );
             Napi::Object obj = Napi::Object::New( Env() );
 
-            for( size_t j = 0; j < row.size(); ++j )
+            int j = 0;
+            for( auto cellIter = row.cbegin(); cellIter != row.cend(); ++cellIter, ++j )
             {
-                const auto val = row.at( j );
-                const auto let = numtolet( j + 1 );
-                obj.Set( Napi::String::New( Env(), let ), Napi::String::New( Env(), val ) );
+                const auto val = *cellIter;
+                const auto let = mySheet.getHeaders().at( j );
+                
+                if( val.getIsString() )
+                {
+                    obj.Set( Napi::String::New( Env(), let ), Napi::String::New( Env(), val.getString() ) );
+                }
+                else if( val.getIsInt() )
+                {
+                    obj.Set( Napi::String::New( Env(), let ), Napi::Number::New( Env(), static_cast<double>( val.getInt() ) ) );
+                }
+                else if( val.getIsDouble() )
+                {
+                    obj.Set( Napi::String::New( Env(), let ), Napi::Number::New( Env(), val.getDouble() ) );
+                }
+                else
+                {
+                    obj.Set( Napi::String::New( Env(), let ), Napi::Value{ Env(), Env().Null() } );
+                }
             }
 
             arr[i] = obj;
