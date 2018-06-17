@@ -8,7 +8,7 @@
 
 namespace xlsx
 {
-    using Row = std::list<Val>;
+    using Row = std::vector<Val>;
     using Data = std::vector<Row>;
 
     class Sheet

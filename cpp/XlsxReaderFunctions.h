@@ -189,8 +189,19 @@ namespace xlsx
                 ++headerIndex;
             }
         }
-        
-        // TODO - do deletions
+
+        for( auto it = deleteIndices.crbegin(); it != deleteIndices.crend(); ++it )
+        {
+            for( int z = 0; z < numRows; ++z )
+            {
+                Row* row = result.getMutableRow( z );
+                auto delIter = row->begin() + static_cast<size_t>( *it );
+                row->erase( delIter );
+            }
+
+            auto delHeaderIter = headers.begin() + static_cast<size_t>( *it );
+            headers.erase( delHeaderIter );
+        } 
 
         result.setHeaders( std::move( headers ) );
         return result;
