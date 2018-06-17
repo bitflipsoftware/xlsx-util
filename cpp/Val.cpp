@@ -151,31 +151,39 @@ namespace xlsx
     }
 
 
+    enum class SciPart
+    {
+        baseSign,
+        baseInt,
+        baseDec,
+        e,
+        expSign,
+        expInt,
+    };
+
+
     bool
     Val::isScientific( const std::string& inVal, double& outVal )
     {
         outVal = 0.0;
-        const std::string patternSci = R"(([0-9]+\.[0-9]+)[eE](-?[0-9]+))"; 
-        std::regex rxSci{ patternSci };
-        std::smatch matchSci;
-        const bool isSci = std::regex_search( inVal, matchSci, rxSci );
+        SciPart currentPart = SciPart::baseSign;
 
-        if( isSci )
+        for( const auto c : inVal )
         {
-            if( matchSci.size() == 3 )
+            if( currentPart == SciPart::baseSign )
             {
-                const std::string b = matchSci[1];
-                const std::string e = matchSci[2];
-                const double base = std::stod( b );
-                const double exp = std::stod( e );
-                const double mult = std::pow( 10.0, exp );
-                const double value = base * mult;
-                outVal = value;
-                return true;
+
             }
         }
 
-        return false;
+        // const std::string b = matchSci[1];
+        // const std::string e = matchSci[2];
+        // const double base = std::stod( b );
+        // const double exp = std::stod( e );
+        // const double mult = std::pow( 10.0, exp );
+        // const double value = base * mult;
+        // outVal = value;
+        return true;
     }
 
 
