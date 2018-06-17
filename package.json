@@ -1,6 +1,6 @@
 {
   "name": "xlsx-util",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Native code to parse and write xlsx files.",
   "main": "gyp/index.js",
   "scripts": {
