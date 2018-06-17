@@ -2,6 +2,7 @@
 #include <regex>
 #include <iostream>
 #include <cmath>
+#include <sstream>
 
 namespace xlsx
 {
@@ -153,8 +154,10 @@ namespace xlsx
 
     enum class SciPart
     {
+        start,
         baseSign,
         baseInt,
+        basePoint,
         baseDec,
         e,
         expSign,
@@ -166,13 +169,64 @@ namespace xlsx
     Val::isScientific( const std::string& inVal, double& outVal )
     {
         outVal = 0.0;
-        SciPart currentPart = SciPart::baseSign;
+        SciPart part = SciPart::start;
+        std::stringstream base;
+        std::stringstream exp;
 
         for( const auto c : inVal )
         {
-            if( currentPart == SciPart::baseSign )
+            if( part == SciPart::start )
+            {
+                if( c == '-' )
+                {
+                    base << c;
+                    part = SciPart::baseSign;
+                }
+                else if( std::isdigit( static_cast<unsigned char>( c ) ) )
+                {
+                    part = SciPart::baseDec;
+                    base << c;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else if( part == SciPart::baseSign )
+            {
+                if( !std::isdigit( static_cast<unsigned char>( c ) ) )
+                {
+                    return false;
+                }
+                else
+                {
+                    part = SciPart::baseDec;
+                    base << c;
+                }
+            }
+            else if( part == SciPart::baseInt )
             {
 
+            }
+            else if( part == SciPart::basePoint )
+            {
+                
+            }
+            else if( part == SciPart::baseDec )
+            {
+                
+            }
+            else if( part == SciPart::e )
+            {
+                
+            }
+            else if( part == SciPart::expSign )
+            {
+                
+            }
+            else if( part == SciPart::expInt )
+            {
+                
             }
         }
 
