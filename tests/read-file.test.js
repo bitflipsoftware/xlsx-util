@@ -151,3 +151,61 @@ describe('readFileWithHeaderTransformAndDelete', () => {
         done();
     })
 })
+
+
+
+
+
+describe('readFileWithHeaderTransformDeleteAndPascalCase', () => {
+    it('should return data', async (done) => {
+        expect.assertions(12)
+
+        const filepath = path.join(__dirname, 'pascal.xlsx')
+
+        const transform = {
+            TransformMe: 'Bones'
+        }
+
+        const deletes = []
+        const pascalWords = [ 'Grp', 'Rate' ]
+
+        const result = await xlsx.readFileWithHeaderTransformDeleteAndPascalCase(filepath, transform, deletes, pascalWords)
+
+        expect(result).toBeTruthy();
+        expect(Array.isArray(result)).toBeTruthy();
+        expect(result.length).toBe(3)
+
+        // ThisIsAHeader	ThisIsAnotherHeader	SomeGrp	CurRate	SgsHsc	LiveFree	Bones	One23Hello
+        let r = 0
+        expect(result[r].ThisIsAHeader).toBe('ThisIsAHeader')
+        expect(result[r].ThisIsAnotherHeader).toBe('ThisIsAnotherHeader')
+        expect(result[r].SomeGrp).toBe('SomeGrp')
+        expect(result[r].CurRate).toBe('CurRate')
+        expect(result[r].SgsHsc).toBe('SgsHsc')
+        expect(result[r].LiveFree).toBe('LiveFree')
+        expect(result[r].Bones).toBe('Bones')
+        expect(result[r].One23Hello).toBe('One23Hello')
+
+        r = 1
+        expect(result[r].ThisIsAHeader).toBe(0)
+        expect(result[r].ThisIsAnotherHeader).toBe(1)
+        expect(result[r].SomeGrp).toBe(2)
+        expect(result[r].CurRate).toBe(3)
+        expect(result[r].SgsHsc).toBe(4)
+        expect(result[r].LiveFree).toBe(5)
+        expect(result[r].Bones).toBe(6)
+        expect(result[r].One23Hello).toBe(7)
+
+        r = 2
+        expect(result[r].ThisIsAHeader).toBe(100)
+        expect(result[r].ThisIsAnotherHeader).toBe(101)
+        expect(result[r].SomeGrp).toBe(102)
+        expect(result[r].CurRate).toBe(103)
+        expect(result[r].SgsHsc).toBe(104)
+        expect(result[r].LiveFree).toBe(105)
+        expect(result[r].Bones).toBe(106)
+        expect(result[r].One23Hello).toBe(107)
+
+        done();
+    })
+})

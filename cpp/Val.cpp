@@ -158,10 +158,6 @@ namespace xlsx
             {
                 const std::string i = matchInt[0];
                 const int num = std::stoi( i );
-                if(num==5)
-                {
-                    throw std::runtime_error{"opps"};
-                }
                 setInt( num );
                 return;
             }
