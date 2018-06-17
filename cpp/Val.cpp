@@ -131,6 +131,43 @@ namespace xlsx
             }
         }
 
+        bool isStr = false;
+        bool isFirstChar = true;
+        int decCount = 0;
+
+        for( const auto& c : val )
+        {
+            if( isFirstChar && c == '-' )
+            {
+                isFirstChar = false;
+                continue;
+            }
+            else if( std::isdigit( static_cast<unsigned char>( c ) ) )
+            {
+                isFirstChar = false;
+                continue;
+            }
+            else if( c == '.' && decCount == 0 )
+            {
+                ++decCount;
+                isFirstChar = false;
+                continue;
+            }
+            else
+            {
+                isStr = true;
+                break;
+            }
+
+            isFirstChar = false;
+        }
+
+        if( isStr )
+        {
+            setString( val );
+            return;
+        }
+
         const std::string patternDec = R"(^[-]?[0-9]+\.[0-9]+$)"; 
         std::regex rxDec{ patternDec };
         std::smatch matchDec;

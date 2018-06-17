@@ -86,10 +86,12 @@ namespace xlsx
                     {
                         if( val.getIsString() )
                         {
+                            std::cout << "header '" << headerIndex << "' is a string" << std::endl;
                             headers.push_back( val.getString() );
                         }
                         else
                         {
+                            std::cout << "header '" << headerIndex << "' is NOT a string" << std::endl;
                             headers.push_back( numtolet( headerIndex + 1 ) );
                         }
 
@@ -188,6 +190,7 @@ namespace xlsx
 
                 for( const char c : header )
                 {
+                    std::cout << "current char is'" << static_cast<char>( c ) << "'" << std::endl;
                     if( !std::isalnum( static_cast<char>( c ) ) )
                     {
                         wasSpace = true;
