@@ -4,6 +4,7 @@
 #include "Sheet.h"
 #include "Val.h"
 #include "numtolet.h"
+#include "replaceAll.h"
 
 #include <iostream>
 #include <future>
@@ -185,9 +186,9 @@ namespace xlsx
                 bool wasSpace = true;
                 bool isFirstChar = true;
 
-                for( const auto c : header )
+                for( const char c : header )
                 {
-                    if( !std::isalnum( c ) )
+                    if( !std::isalnum( static_cast<char>( c ) ) )
                     {
                         wasSpace = true;
                         continue;
@@ -211,10 +212,11 @@ namespace xlsx
                             case '9': { current = "Nine"; break; }
                             default: { throw std::runtime_error{ "this should never happen" }; }
                         }
+                        std::cout << current << std::endl;
                     }
-                    else if( std::isdigit( c ) )
+                    else if( std::isdigit( static_cast<char>( c ) ) )
                     {
-                        current = std::string{ c };
+                        current = std::string{ static_cast<char>( c ) };
                     }
                     else if( wasSpace )
                     {
@@ -227,6 +229,10 @@ namespace xlsx
 
                     isFirstChar = false;
                     wasSpace = false;
+                    if( current == "One" )
+                    {
+                        std::cout << "setting '" << current << "'" << std::endl; 
+                    }
                     ss << current;
                 }
 
@@ -236,21 +242,7 @@ namespace xlsx
                 {
                     for( const auto& replacement : pascalWords )
                     {
-                        std::stringstream rss;
-
-                        for( const auto r : replacement )
-                        {
-                            rss << std::tolower( static_cast<char>( static_cast<unsigned char>( r ) ) );
-                        }
-
-                        const std::string l = rss.str();
-
-                        std::string::size_type n = 0;
-                        while ( ( n = newHeader.find( l, n ) ) != std::string::npos )
-                        {
-                            newHeader = newHeader.replace( n, l.size(), replacement );
-                            n += replacement.size();
-                        }
+                        newHeader = replaceAll( newHeader, replacement, replacement );
                     }
 
                     newHeaders.push_back( newHeader );
