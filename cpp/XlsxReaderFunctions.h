@@ -21,10 +21,19 @@ namespace xlsx
         const char* sheetname,
         xlsx::XlsxReader& xreader,
         bool hasHeaders,
-        const std::map<std::string, std::string>& headerTransformMap );
+        const std::map<std::string, std::string>& headerTransformMap,
+        const std::set<std::string>& deletes,
+        bool doPascalCase,
+        const std::set<std::string>& pascalWords );
 
     inline Sheet
-    extractAllData( const std::string& filename, bool hasHeaders, const std::map<std::string, std::string>& headerTransformMap )
+    extractAllData(
+        const std::string& filename,
+        bool hasHeaders,
+        const std::map<std::string, std::string>& headerTransformMap,
+        const std::set<std::string>& deletes,
+        bool doPascalCase,
+        const std::set<std::string>& pascalWords )
     {
         xlsx::XlsxReader xreader{ filename };
 
@@ -36,7 +45,7 @@ namespace xlsx
         }
 
         const char* sheetname = nullptr;
-        Sheet sh = extractAllRows( sheetname, xreader, hasHeaders, headerTransformMap );
+        Sheet sh = extractAllRows( sheetname, xreader, hasHeaders, headerTransformMap, deletes, doPascalCase, pascalWords );
         return sh;
     }
 
@@ -46,7 +55,10 @@ namespace xlsx
         const char* sheetname,
         xlsx::XlsxReader& xreader,
         bool hasHeaders,
-        const std::map<std::string, std::string>& headerTransformMap )
+        const std::map<std::string, std::string>& headerTransformMap,
+        const std::set<std::string>& deletes,
+        bool doPascalCase,
+        const std::set<std::string>& pascalWords )
     {
         Sheet result;
         xlsxioreadersheet sheet = nullptr;
@@ -109,6 +121,24 @@ namespace xlsx
             headers.emplace_back( std::move( nextColumnLetters ) );
         }
 
+        std::set<int> deleteIndices;
+
+        if( !deletes.empty() )
+        {
+            int headerIndex = 0;
+            for( const auto& header : headers )
+            {
+                const auto it = deletes.find( header );
+
+                if( it != deletes.cend() )
+                {
+                    deleteIndices.insert( headerIndex );
+                }
+
+                ++headerIndex;
+            }
+        }
+
         if( !headerTransformMap.empty() )
         {
             for( auto it = headers.begin(); it != headers.end(); ++it )
@@ -124,6 +154,43 @@ namespace xlsx
             }
         }
 
+        if( !deletes.empty() )
+        {
+            int headerIndex = 0;
+            for( const auto& header : headers )
+            {
+                const auto it = deletes.find( header );
+
+                if( it != deletes.cend() )
+                {
+                    deleteIndices.insert( headerIndex );
+                }
+
+                ++headerIndex;
+            }
+        }
+
+        // TODO - do pascal casing
+
+        // TODO - check for delete strings again
+
+        if( !deletes.empty() )
+        {
+            int headerIndex = 0;
+            for( const auto& header : headers )
+            {
+                const auto it = deletes.find( header );
+
+                if( it != deletes.cend() )
+                {
+                    deleteIndices.insert( headerIndex );
+                }
+
+                ++headerIndex;
+            }
+        }
+        
+        // TODO - do deletions
 
         result.setHeaders( std::move( headers ) );
         return result;

@@ -31,7 +31,7 @@ namespace xlsx
     {
         try
         {
-            mySheet = extractAllData( myFilename, myHasHeaders, myTransformMap );
+            mySheet = extractAllData( myFilename, myHasHeaders, myTransformMap, myDeletes, myDoPascalCase, myPascalWords );
         }
         catch( std::exception& ex )
         {
