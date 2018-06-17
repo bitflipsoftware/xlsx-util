@@ -111,24 +111,12 @@ namespace xlsx
     void
     Val::setParse( const std::string& val )
     {
-        const std::string patternSci = R"(([0-9]+\.[0-9]+)[eE](-?[0-9]+))"; 
-        std::regex rxSci{ patternSci };
-        std::smatch matchSci;
-        const bool isSci = std::regex_search(val, matchSci, rxSci);
+        double doubleVal = 0.0;
 
-        if( isSci )
+        if( Val::isScientific( val, doubleVal ) )
         {
-            if( matchSci.size() == 3 )
-            {
-                const std::string b = matchSci[1];
-                const std::string e = matchSci[2];
-                const double base = std::stod( b );
-                const double exp = std::stod( e );
-                const double mult = std::pow( 10.0, exp );
-                const double value = base * mult;
-                setDouble( value );
-                return;
-            }
+            setDouble( doubleVal );
+            return;
         }
 
         if( Val::isString( val ) )
@@ -176,7 +164,28 @@ namespace xlsx
     bool
     Val::isScientific( const std::string& inVal, double& outVal )
     {
+        outVal = 0.0;
+        const std::string patternSci = R"(([0-9]+\.[0-9]+)[eE](-?[0-9]+))"; 
+        std::regex rxSci{ patternSci };
+        std::smatch matchSci;
+        const bool isSci = std::regex_search( inVal, matchSci, rxSci );
 
+        if( isSci )
+        {
+            if( matchSci.size() == 3 )
+            {
+                const std::string b = matchSci[1];
+                const std::string e = matchSci[2];
+                const double base = std::stod( b );
+                const double exp = std::stod( e );
+                const double mult = std::pow( 10.0, exp );
+                const double value = base * mult;
+                outVal = value;
+                return true;
+            }
+        }
+
+        return false;
     }
 
 
