@@ -4,54 +4,58 @@
 #include "AsyncError.h"
 #include <set>
 
+// filepathString, doReadHeaders, headerTransformObj, columnsToDeleteArr, doPascalCase, pascalWords, (error, result) =>
+
 namespace xlsx
 {
     void readXlsxAsync( const Napi::CallbackInfo& info )
     {
         Napi::Env env = info.Env();
         // std::unique_ptr<Napi::HandleScope> scope{ new Napi::HandleScope{ env } };
-        std::unique_ptr<Napi::EscapableHandleScope> scope = nullptr;
+        // std::unique_ptr<Napi::EscapableHandleScope> scope = nullptr;
 
         // we need to check for the presence of a client callback function
         // and if we do not have one then we must raise a synchronous error
-        if( info.Length() != 5 )
+        if( info.Length() != 7 )
         {
             Napi::TypeError::New(env, "xlsx-util: invalid argument count - should be 4").ThrowAsJavaScriptException();
             return;
         }
 
-        if( !info[4].IsFunction() )
+        if( !info[6].IsFunction() )
         {
-            Napi::TypeError::New(env, "xlsx-util: invalid callback function [arg3]").ThrowAsJavaScriptException();
+            Napi::TypeError::New(env, "xlsx-util: invalid callback function [arg6]").ThrowAsJavaScriptException();
             return;
         }
 
-        Napi::Function cb = info[4].As<Napi::Function>();
+        Napi::Function cb = info[6].As<Napi::Function>();
 
         if( !info[0].IsString() )
         {
-            auto err = new AsyncError{ cb, "xlsx-util: first argument must be a string [filename]" };
+            auto err = new AsyncError{ cb, "xlsx-util: [arg0] must be a string [filename]" };
             err->Queue();
             return;
         }
 
-        if( !info[1].IsBoolean() )
+        const std::string filename = info[0].As<Napi::String>().Utf8Value();
+
+        bool hasHeaders = false;
+
+        if( !info[1].IsUndefined() && !info[1].IsNull() && info[1].IsBoolean() )
         {
-            auto err = new AsyncError{ cb, "xlsx-util: second argument must be a boolean [filename]" };
-            err->Queue();
-            return;
+            hasHeaders = info[1].ToBoolean();
         }
 
-        Napi::Function transformFun = Napi::Value{ env, env.Null() }.As<Napi::Function>();
+        std::map<std::string, std::string> transformMap;
 
-        if( !info[2].IsNull() && info[2].IsFunction() )
+        if( !info[2].IsUndefined() && !info[2].IsNull() && info[2].IsObject() )
         {
-            transformFun = info[2].As<Napi::Function>();
+            // TODO - add the key value pairs to the transformMap
         }
 
         std::set<std::string> columnsToDelete;
 
-        if( !info[3].IsNull() && info[3].IsArray() )
+        if( !info[3].IsUndefined() && !info[3].IsNull() && info[3].IsArray() )
         {
             auto deletes = info[3].As<Napi::Array>();
 
@@ -65,9 +69,30 @@ namespace xlsx
             }
         }
 
-        const std::string filename = info[0].As<Napi::String>().Utf8Value();
-        const bool hasHeaders = info[1].ToBoolean();
-        AsyncReader* reader = new AsyncReader{ std::move( scope ), filename, hasHeaders, transformFun, columnsToDelete, cb };
+        std::set<std::string> pascalWords;
+
+        if( !info[5].IsUndefined() && !info[5].IsNull() && info[5].IsArray() )
+        {
+            auto arr = info[5].As<Napi::Array>();
+
+            for( int i = 0; i < arr.Length(); ++i )
+            {
+                auto value = arr.Get( i );
+                if( value.IsString() )
+                {
+                    pascalWords.insert( value.As<Napi::String>().Utf8Value() );
+                }
+            }
+        }
+
+        bool doPascalCase = false;
+
+        if( !info[4].IsUndefined() && !info[4].IsNull() && info[4].IsBoolean() )
+        {
+            doPascalCase = info[4].ToBoolean();
+        }
+
+        AsyncReader* reader = new AsyncReader{ filename, hasHeaders, transformMap, columnsToDelete, doPascalCase, pascalWords, cb };
         reader->Queue();
     }
 }

@@ -1,12 +1,12 @@
 const nativeModule = require('bindings')('xlsx')
 
-const privatePromiseWrap = (filepathString, doReadHeaders, headerTransformFunc, columnsToDeleteArr)  => new Promise( (resolve, reject) => {
+const privatePromiseWrap = (filepathString, doReadHeaders, headerTransformObj, columnsToDeleteArr, doPascalCase, pascalWords)  => new Promise( (resolve, reject) => {
     try {
         if (!filepathString || typeof filepathString !== 'string') {
             throw new Error('first argument must be a filepath in the form of a string')
         }
 
-        nativeModule.readXlsxAsync(filepathString, doReadHeaders, headerTransformFunc, columnsToDeleteArr, (error, result) => {
+        nativeModule.readXlsxAsync(filepathString, doReadHeaders, headerTransformObj, columnsToDeleteArr, doPascalCase, pascalWords, (error, result) => {
             if(error) {
                 reject(error)
             } else if (result) {
@@ -23,7 +23,7 @@ const privatePromiseWrap = (filepathString, doReadHeaders, headerTransformFunc, 
 const readFile = (filepathString) => new Promise( async (resolve, reject) => {
     try {
         const columnsToDeleteArr = []
-        const result = await privatePromiseWrap(filepathString, false, null, columnsToDeleteArr)
+        const result = await privatePromiseWrap(filepathString, false, null, columnsToDeleteArr, false, null)
         resolve(result)
     } catch (e) {
         reject(e)
@@ -33,17 +33,17 @@ const readFile = (filepathString) => new Promise( async (resolve, reject) => {
 const readFileWithHeaders = (filepathString) => new Promise( async (resolve, reject) => {
     try {
         const columnsToDeleteArr = []
-        const result = await privatePromiseWrap(filepathString, true, null, columnsToDeleteArr)
+        const result = await privatePromiseWrap(filepathString, true, null, columnsToDeleteArr, false, null)
         resolve(result)
     } catch (e) {
         reject(e)
     }
 })
 
-const readFileWithHeaderTransform = (filepathString, headerTransformFunc) => new Promise( async (resolve, reject) => {
+const readFileWithHeaderTransform = (filepathString, headerTransformObj) => new Promise( async (resolve, reject) => {
     try {
         const columnsToDeleteArr = []
-        const result = await privatePromiseWrap(filepathString, true, headerTransformFunc, columnsToDeleteArr)
+        const result = await privatePromiseWrap(filepathString, true, headerTransformObj, columnsToDeleteArr, false, null)
         resolve(result)
     } catch (e) {
         reject(e)
@@ -52,7 +52,16 @@ const readFileWithHeaderTransform = (filepathString, headerTransformFunc) => new
 
 const readFileWithHeaderTransformAndDelete = (filepathString, headerTransformFunc, columnsToDeleteArr) => new Promise( async (resolve, reject) => {
     try {
-        const result = await privatePromiseWrap(filepathString, true, headerTransformFunc, columnsToDeleteArr)
+        const result = await privatePromiseWrap(filepathString, true, headerTransformFunc, columnsToDeleteArr, false, null)
+        resolve(result)
+    } catch (e) {
+        reject(e)
+    }
+})
+
+const readFileWithHeaderTransformDeleteAndPascalCase = (filepathString, headerTransformFunc, columnsToDeleteArr, pascalWords) => new Promise( async (resolve, reject) => {
+    try {
+        const result = await privatePromiseWrap(filepathString, true, headerTransformFunc, columnsToDeleteArr, true, pascalWords)
         resolve(result)
     } catch (e) {
         reject(e)
@@ -64,4 +73,5 @@ module.exports = {
     readFileWithHeaders,
     readFileWithHeaderTransform,
     readFileWithHeaderTransformAndDelete,
+    readFileWithHeaderTransformDeleteAndPascalCase,
 }
