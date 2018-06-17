@@ -185,7 +185,7 @@ namespace xlsx
             for( const auto& header : headers )
             {
                 std::stringstream ss;
-                bool wasSpace = true;
+                bool doUpperNext = true;
                 bool isFirstChar = true;
 
                 for( const char c : header )
@@ -193,7 +193,7 @@ namespace xlsx
                     std::cout << "current char is'" << static_cast<char>( c ) << "'" << std::endl;
                     if( !std::isalnum( static_cast<char>( c ) ) )
                     {
-                        wasSpace = true;
+                        doUpperNext = true;
                         continue;
                     }
 
@@ -216,22 +216,25 @@ namespace xlsx
                             default: { throw std::runtime_error{ "this should never happen" }; }
                         }
                         std::cout << current << std::endl;
+                        doUpperNext = true;
                     }
                     else if( std::isdigit( static_cast<char>( c ) ) )
                     {
                         current = std::string{ static_cast<char>( c ) };
+                        doUpperNext = true;
                     }
-                    else if( wasSpace )
+                    else if( doUpperNext )
                     {
                         current = std::string{ static_cast<char>( std::toupper( static_cast<unsigned char>( c ) ) ) };
+                        doUpperNext = false;
                     }
                     else
                     {
                         current = std::string{ static_cast<char>( std::tolower( static_cast<unsigned char>( c ) ) ) };
+                        doUpperNext = false;
                     }
 
                     isFirstChar = false;
-                    wasSpace = false;
                     if( current == "One" )
                     {
                         std::cout << "setting '" << current << "'" << std::endl; 

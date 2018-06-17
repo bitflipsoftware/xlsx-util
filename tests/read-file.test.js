@@ -156,7 +156,7 @@ describe('readFileWithHeaderTransformAndDelete', () => {
 
 describe('readFileWithHeaderTransformDeleteAndPascalCase', () => {
     it('should return data', async (done) => {
-        expect.assertions(12)
+        expect.assertions(27)
 
         const filepath = path.join(__dirname, 'pascal.xlsx')
 
