@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Profile" type="NodeJSConfigurationType" factoryName="Node.js" application-parameters="--env=jsdom --no-cache --runInBand" node-parameters="--max-old-space-size=7168" path-to-js-file="$PROJECT_DIR$/../iqbid/node_modules/jest/bin/jest.js" working-dir="$PROJECT_DIR$">
+    <envs>
+      <env name="CI" value="true" />
+    </envs>
+    <EXTENSION ID="com.jetbrains.nodejs.run.NodeJSProfilingRunConfigurationExtension">
+      <profiling allow-runtime-heap-snapshot="true" do-profile="true" v8-profiler-path="$USER_HOME$/.nvm/versions/node/v9.8.0/lib/node_modules/v8-profiler" />
+    </EXTENSION>
+    <method />
+  </configuration>
+</component>

@@ -131,38 +131,7 @@ namespace xlsx
             }
         }
 
-        bool isStr = false;
-        bool isFirstChar = true;
-        int decCount = 0;
-
-        for( const auto& c : val )
-        {
-            if( isFirstChar && c == '-' )
-            {
-                isFirstChar = false;
-                continue;
-            }
-            else if( std::isdigit( static_cast<unsigned char>( c ) ) )
-            {
-                isFirstChar = false;
-                continue;
-            }
-            else if( c == '.' && decCount == 0 )
-            {
-                ++decCount;
-                isFirstChar = false;
-                continue;
-            }
-            else
-            {
-                isStr = true;
-                break;
-            }
-
-            isFirstChar = false;
-        }
-
-        if( isStr )
+        if( Val::isString( val ) )
         {
             setString( val );
             return;
@@ -201,5 +170,63 @@ namespace xlsx
         }
 
         setString( val );
+    }
+
+
+    bool
+    Val::isScientific( const std::string& inVal, double& outVal )
+    {
+
+    }
+
+
+    bool
+    Val::isDecimal( const std::string& inVal, double& outVal )
+    {
+
+    }
+
+
+    bool
+    Val::isInteger( const std::string& inVal, int& outVal )
+    {
+
+    }
+
+
+    bool
+    Val::isString( const std::string& inVal )
+    {
+        bool isStr = false;
+        bool isFirstChar = true;
+        int decCount = 0;
+
+        for( const auto& c : inVal )
+        {
+            if( isFirstChar && c == '-' )
+            {
+                isFirstChar = false;
+                continue;
+            }
+            else if( std::isdigit( static_cast<unsigned char>( c ) ) )
+            {
+                isFirstChar = false;
+                continue;
+            }
+            else if( c == '.' && decCount == 0 )
+            {
+                ++decCount;
+                isFirstChar = false;
+                continue;
+            }
+            else
+            {
+                return true;
+            }
+
+            isFirstChar = false;
+        }
+
+        return false;
     }
 }
