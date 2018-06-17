@@ -125,36 +125,17 @@ namespace xlsx
             return;
         }
 
-        const std::string patternDec = R"(^[-]?[0-9]+\.[0-9]+$)"; 
-        std::regex rxDec{ patternDec };
-        std::smatch matchDec;
-        const bool isDec = std::regex_search(val, matchDec, rxDec);
-
-        if( isDec )
+        if( Val::isDecimal( val, doubleVal ) )
         {
-            if( matchDec.size() == 1 )
-            {
-                const std::string d = matchDec[0];
-                const double num = std::stod( d );
-                setDouble( num );
-                return;
-            }
+            setDouble( doubleVal );
+            return;
         }
 
-        const std::string patternInt = R"([-]?[0-9]+)"; 
-        std::regex rxInt{ patternInt };
-        std::smatch matchInt;
-        const bool isInt = std::regex_search(val, matchInt, rxInt);
-
-        if( isInt )
+        int intVal = 0;
+        if( Val::isInteger( val, intVal ) )
         {
-            if( matchInt.size() == 1 )
-            {
-                const std::string i = matchInt[0];
-                const int num = std::stoi( i );
-                setInt( num );
-                return;
-            }
+            setInt( intVal );
+            return;
         }
 
         setString( val );
@@ -192,14 +173,48 @@ namespace xlsx
     bool
     Val::isDecimal( const std::string& inVal, double& outVal )
     {
+        outVal = 0.0;
+        const std::string patternDec = R"(^[-]?[0-9]+\.[0-9]+$)"; 
+        std::regex rxDec{ patternDec };
+        std::smatch matchDec;
+        const bool isDec = std::regex_search( inVal, matchDec, rxDec );
 
+        if( isDec )
+        {
+            if( matchDec.size() == 1 )
+            {
+                const std::string d = matchDec[0];
+                const double num = std::stod( d );
+                outVal = num;
+                return true;
+            }
+        }
+
+        return false;
     }
 
 
     bool
     Val::isInteger( const std::string& inVal, int& outVal )
     {
+        outVal = 0;
+        const std::string patternInt = R"([-]?[0-9]+)"; 
+        std::regex rxInt{ patternInt };
+        std::smatch matchInt;
+        const bool isInt = std::regex_search( inVal, matchInt, rxInt );
 
+        if( isInt )
+        {
+            if( matchInt.size() == 1 )
+            {
+                const std::string i = matchInt[0];
+                const int num = std::stoi( i );
+                outVal = num;
+                return true;
+            }
+        }
+
+        return false;
     }
 
 
