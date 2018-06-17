@@ -200,43 +200,107 @@ namespace xlsx
                 }
                 else
                 {
-                    part = SciPart::baseDec;
+                    part = SciPart::baseInt;
                     base << c;
                 }
             }
             else if( part == SciPart::baseInt )
             {
-
+                if( c == '.' )
+                {
+                    base << c;
+                    part = SciPart::basePoint;
+                }
+                else if( std::isdigit( static_cast<unsigned char>( c ) ) )
+                {
+                    base << c;
+                }
+                else
+                {
+                    return false;
+                }
             }
             else if( part == SciPart::basePoint )
             {
-                
+                if( !std::isdigit( static_cast<unsigned char>( c ) ) )
+                {
+                    return false;
+                }
+                else
+                {
+                    part = SciPart::baseDec;
+                    base << c;
+                }
             }
             else if( part == SciPart::baseDec )
             {
-                
+                if( c == 'E' || c == 'e' )
+                {
+                    base << c;
+                    part = SciPart::e;
+                }
+                else if( std::isdigit( static_cast<unsigned char>( c ) ) )
+                {
+                    base << c;
+                }
+                else
+                {
+                    return false;
+                }
             }
             else if( part == SciPart::e )
             {
-                
+                if( c == '-' )
+                {
+                    exp << c;
+                    part = SciPart::expSign;
+                }
+                else if( std::isdigit( static_cast<unsigned char>( c ) ) )
+                {
+                    part = SciPart::expInt;
+                    exp << c;
+                }
+                else
+                {
+                    return false;
+                }
             }
             else if( part == SciPart::expSign )
             {
-                
+                if( !std::isdigit( static_cast<unsigned char>( c ) ) )
+                {
+                    return false;
+                }
+                else
+                {
+                    part = SciPart::expInt;
+                    exp << c;
+                }
             }
             else if( part == SciPart::expInt )
             {
-                
+                if( !std::isdigit( static_cast<unsigned char>( c ) ) )
+                {
+                    return false;
+                }
+                else
+                {
+                    exp << c;
+                }
+            }
+            else
+            {
+                return false;
             }
         }
 
-        // const std::string b = matchSci[1];
-        // const std::string e = matchSci[2];
-        // const double base = std::stod( b );
-        // const double exp = std::stod( e );
-        // const double mult = std::pow( 10.0, exp );
-        // const double value = base * mult;
-        // outVal = value;
+        const std::string b = base.str();
+        const std::string e = exp.str();
+        const double baseDouble = std::stod( b );
+        const double expDouble = std::stod( e );
+        const double multDouble = std::pow( 10.0, expDouble );
+        const double valueDouble = expDouble * multDouble;
+        outVal = valueDouble;
         return true;
     }
 
