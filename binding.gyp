@@ -3,12 +3,14 @@
     {
       'target_name': 'xlsx',
       'sources': [
-        'cpp/init.cpp',
-        'cpp/AsyncReader.cpp',
         'cpp/AsyncError.cpp',
+        'cpp/AsyncReader.cpp',
+        'cpp/init.cpp',
         'cpp/readXlsxAsync.cpp',
-        'cpp/Val.cpp',
+        'cpp/replaceAllNapi.cpp',
         'cpp/Sheet.cpp',
+        'cpp/toLowerNapi.cpp',
+        'cpp/Val.cpp',
         'cpp/xlsx.cpp',
         'cpp/third-party/xlsxio/lib/xlsxio_read.c',
         'cpp/third-party/xlsxio/lib/xlsxio_read_sharedstrings.c',

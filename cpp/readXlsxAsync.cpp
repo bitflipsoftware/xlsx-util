@@ -2,7 +2,6 @@
 #include "readXlsxAsync.h"
 #include "AsyncReader.h"
 #include "AsyncError.h"
-#include "Sheet.h"
 #include <set>
 
 // filepathString, doReadHeaders, headerTransformObj, columnsToDeleteArr, doPascalCase, pascalWords, (error, result) =>
@@ -19,7 +18,7 @@ namespace xlsx
         // and if we do not have one then we must raise a synchronous error
         if( info.Length() != 7 )
         {
-            Napi::TypeError::New(env, "xlsx-util: invalid argument count - should be 4").ThrowAsJavaScriptException();
+            Napi::TypeError::New(env, "xlsx-util: invalid argument count - should be 7").ThrowAsJavaScriptException();
             return;
         }
 

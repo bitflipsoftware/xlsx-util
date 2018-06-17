@@ -68,10 +68,43 @@ const readFileWithHeaderTransformDeleteAndPascalCase = (filepathString, headerTr
     }
 })
 
+const replaceAll = (theString, findStr, replaceStr) => {
+
+    if(theString === null || typeof theString !== 'string')
+    {
+        throw new Error('theString must be a string')
+    }
+
+    if(findStr === null || typeof findStr !== 'string')
+    {
+        throw new Error('findStr must be a string')
+    }
+
+    if(replaceStr === null || typeof replaceStr !== 'string')
+    {
+        throw new Error('replaceStr must be a string')
+    }
+
+    return nativeModule.replaceAll(theString, findStr,replaceStr)
+}
+
+
+const toLower = (inputStr) => {
+
+    if(inputStr === null || typeof inputStr !== 'string')
+    {
+        throw new Error('inputStr must be a string')
+    }
+
+    return nativeModule.toLower(inputStr)
+}
+
 module.exports = {
     readFile,
     readFileWithHeaders,
     readFileWithHeaderTransform,
     readFileWithHeaderTransformAndDelete,
     readFileWithHeaderTransformDeleteAndPascalCase,
+    replaceAll,
+    toLower,
 }

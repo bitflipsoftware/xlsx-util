@@ -248,7 +248,7 @@ namespace xlsx
                         std::string::size_type n = 0;
                         while ( ( n = newHeader.find( l, n ) ) != std::string::npos )
                         {
-                            newHeader.replace( n, l.size(), replacement );
+                            newHeader = newHeader.replace( n, l.size(), replacement );
                             n += replacement.size();
                         }
                     }
