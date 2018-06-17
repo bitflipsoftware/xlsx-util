@@ -212,13 +212,17 @@ namespace xlsx
                             default: { throw std::runtime_error{ "this should never happen" }; }
                         }
                     }
+                    else if( std::isdigit( c ) )
+                    {
+                        current = std::string{ c };
+                    }
                     else if( wasSpace )
                     {
-                        current = std::string{ static_cast<char>( std::toupper( c ) ) };
+                        current = std::string{ static_cast<char>( std::toupper( static_cast<unsigned char>( c ) ) ) };
                     }
                     else
                     {
-                        current = std::string{ static_cast<char>( std::tolower( c ) ) };
+                        current = std::string{ static_cast<char>( std::tolower( static_cast<unsigned char>( c ) ) ) };
                     }
 
                     isFirstChar = false;
@@ -226,10 +230,29 @@ namespace xlsx
                     ss << current;
                 }
 
-                const auto newHeader = ss.str();
+                auto newHeader = ss.str();
 
                 if( !newHeader.empty() )
                 {
+                    for( const auto& replacement : pascalWords )
+                    {
+                        std::stringstream rss;
+
+                        for( const auto r : replacement )
+                        {
+                            rss << std::tolower( static_cast<char>( static_cast<unsigned char>( r ) ) );
+                        }
+
+                        const std::string l = rss.str();
+
+                        std::string::size_type n = 0;
+                        while ( ( n = newHeader.find( l, n ) ) != std::string::npos )
+                        {
+                            newHeader.replace( n, l.size(), replacement );
+                            n += replacement.size();
+                        }
+                    }
+
                     newHeaders.push_back( newHeader );
                 }
                 else
