@@ -12,6 +12,8 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <locale>
+#include <cctype>
 
 namespace xlsx
 {
@@ -121,6 +123,7 @@ namespace xlsx
             headers.emplace_back( std::move( nextColumnLetters ) );
         }
 
+        // check for delete strings before altering the headers
         std::set<int> deleteIndices;
 
         if( !deletes.empty() )
@@ -154,6 +157,7 @@ namespace xlsx
             }
         }
 
+        // check for delete strings again after altering the headers
         if( !deletes.empty() )
         {
             int headerIndex = 0;
@@ -170,10 +174,76 @@ namespace xlsx
             }
         }
 
-        // TODO - do pascal casing
+        if( doPascalCase )
+        {
+            std::vector<std::string> newHeaders;
+            int hindex = 0;
 
-        // TODO - check for delete strings again
+            for( const auto& header : headers )
+            {
+                std::stringstream ss;
+                bool wasSpace = true;
+                bool isFirstChar = true;
 
+                for( const auto c : header )
+                {
+                    if( !std::isalnum( c ) )
+                    {
+                        wasSpace = true;
+                        continue;
+                    }
+
+                    std::string current;
+
+                    if( isFirstChar && std::isdigit( c ) )
+                    {
+                        switch(c)
+                        {
+                            case '0': { current = "Zero"; break; }
+                            case '1': { current = "One"; break; }
+                            case '2': { current = "Two"; break; }
+                            case '3': { current = "Three"; break; }
+                            case '4': { current = "Four"; break; }
+                            case '5': { current = "Five"; break; }
+                            case '6': { current = "Six"; break; }
+                            case '7': { current = "Seven"; break; }
+                            case '8': { current = "Eight"; break; }
+                            case '9': { current = "Nine"; break; }
+                            default: { throw std::runtime_error{ "this should never happen" }; }
+                        }
+                    }
+                    else if( wasSpace )
+                    {
+                        current = std::string{ static_cast<char>( std::toupper( c ) ) };
+                    }
+                    else
+                    {
+                        current = std::string{ static_cast<char>( std::tolower( c ) ) };
+                    }
+
+                    isFirstChar = false;
+                    wasSpace = false;
+                    ss << current;
+                }
+
+                const auto newHeader = ss.str();
+
+                if( !newHeader.empty() )
+                {
+                    newHeaders.push_back( newHeader );
+                }
+                else
+                {
+                    newHeaders.push_back( numtolet( hindex + 1 ) );
+                }
+
+                ++hindex;
+            }
+
+            headers = newHeaders;
+        }
+
+        // check for delete strings again after altering the headers
         if( !deletes.empty() )
         {
             int headerIndex = 0;
