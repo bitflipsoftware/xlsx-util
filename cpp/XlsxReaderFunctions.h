@@ -86,12 +86,10 @@ namespace xlsx
                     {
                         if( val.getIsString() )
                         {
-                            std::cout << "header '" << headerIndex << "' is a string" << std::endl;
                             headers.push_back( val.getString() );
                         }
                         else
                         {
-                            std::cout << "header '" << headerIndex << "' is NOT a string" << std::endl;
                             headers.push_back( numtolet( headerIndex + 1 ) );
                         }
 
@@ -190,7 +188,6 @@ namespace xlsx
 
                 for( const char c : header )
                 {
-                    std::cout << "current char is'" << static_cast<char>( c ) << "'" << std::endl;
                     if( !std::isalnum( static_cast<char>( c ) ) )
                     {
                         doUpperNext = true;
@@ -215,7 +212,6 @@ namespace xlsx
                             case '9': { current = "Nine"; break; }
                             default: { throw std::runtime_error{ "this should never happen" }; }
                         }
-                        std::cout << current << std::endl;
                         doUpperNext = true;
                     }
                     else if( std::isdigit( static_cast<char>( c ) ) )
@@ -235,10 +231,6 @@ namespace xlsx
                     }
 
                     isFirstChar = false;
-                    if( current == "One" )
-                    {
-                        std::cout << "setting '" << current << "'" << std::endl; 
-                    }
                     ss << current;
                 }
 
