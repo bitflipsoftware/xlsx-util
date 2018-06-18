@@ -295,6 +295,17 @@ namespace xlsx
 
         const std::string b = base.str();
         const std::string e = exp.str();
+        
+        if( b.empty() )
+        {
+            return false;
+        }
+        
+        if( e.empty() )
+        {
+            return false;
+        }
+        
         const double baseDouble = std::stod( b );
         const double expDouble = std::stod( e );
         const double multDouble = std::pow( 10.0, expDouble );

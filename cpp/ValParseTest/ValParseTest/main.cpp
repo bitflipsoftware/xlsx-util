@@ -12,7 +12,7 @@
 int main(int argc, const char * argv[])
 {
     xlsx::Val v;
-    std::string sci = "7.12345E-3";
+    std::string sci = "7.12345e003";
     v.setParse( sci );
     std::cout << v.getDouble() << std::endl;
     return 0;
