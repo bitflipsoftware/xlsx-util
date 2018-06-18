@@ -5,6 +5,7 @@
 #include "Val.h"
 #include "numtolet.h"
 #include "replaceAll.h"
+#include "normalizeString.h"
 
 #include <iostream>
 #include <future>
@@ -143,17 +144,23 @@ namespace xlsx
             }
         }
 
+        std::set<int> transformedHeaderIndices;
+
         if( !headerTransformMap.empty() )
         {
-            for( auto it = headers.begin(); it != headers.end(); ++it )
+            int headerIdx = 0;
+
+            for( auto it = headers.begin(); it != headers.end(); ++it, ++headerIdx )
             {
                 const auto oldHeader = *it;
-                const auto findIter = headerTransformMap.find( oldHeader );
+                const auto oldHeaderNormalized = normalizeString( oldHeader );
+                const auto findIter = headerTransformMap.find( oldHeaderNormalized );
 
                 if( findIter != headerTransformMap.cend() )
                 {
                     const auto newHeader = findIter->second;
                     *it = newHeader;
+                    transformedHeaderIndices.insert( headerIdx );
                 }
             }
         }
@@ -182,6 +189,14 @@ namespace xlsx
 
             for( const auto& header : headers )
             {
+                if( transformedHeaderIndices.find( hindex ) != transformedHeaderIndices.cend() )
+                {
+                    // already handled by header transform map
+                    ++hindex;
+                    newHeaders.push_back( header );
+                    continue;
+                }
+
                 std::stringstream ss;
                 bool doUpperNext = true;
                 bool isFirstChar = true;
