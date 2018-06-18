@@ -193,7 +193,11 @@ namespace xlsx
             }
             else if( part == SciPart::baseInt )
             {
-                if( c == '.' )
+                if( c == 'e' || c == 'E' )
+                {
+                    part = SciPart::e;
+                }
+                else if( c == '.' )
                 {
                     base << c;
                     part = SciPart::basePoint;
