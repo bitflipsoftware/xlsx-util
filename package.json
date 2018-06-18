@@ -8,7 +8,8 @@
     "compile:debug": "node-gyp clean && node-gyp configure --debug && node-gyp build --debug",
     "compile:release": "node-gyp clean && node-gyp configure --release && node-gyp build --release",
     "test": "CI=true npm run compile:debug && node ./node_modules/jest/bin/jest.js --env=jsdom --no-cache --runInBand",
-    "test:release": "CI=true npm run compile:debug && node ./node_modules/jest/bin/jest.js --env=jsdom --no-cache --runInBand"
+    "test:release": "CI=true npm run compile:debug && node ./node_modules/jest/bin/jest.js --env=jsdom --no-cache --runInBand",
+    "test:quick": "CI=true node-gyp build --debug && node ./node_modules/jest/bin/jest.js --env=jsdom --no-cache --runInBand"
   },
   "repository": {
     "type": "git",
