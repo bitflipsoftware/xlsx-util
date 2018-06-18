@@ -1,6 +1,6 @@
 {
   "name": "xlsx-util",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "Native code to parse and write xlsx files.",
   "main": "./index.js",
   "scripts": {
