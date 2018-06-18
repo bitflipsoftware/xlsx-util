@@ -2,7 +2,7 @@
   "name": "xlsx-util",
   "version": "0.0.11",
   "description": "Native code to parse and write xlsx files.",
-  "main": "gyp/index.js",
+  "main": "./index.js",
   "scripts": {
     "install": "yarn compile:release",
     "compile:debug": "node-gyp clean && node-gyp configure --debug && node-gyp build --debug",

@@ -46,46 +46,62 @@ namespace xlsx
 
     void
     AsyncReader::OnOK()
-    {        
-        // myTransform = Napi::Value{ Env(), myTransform }.As<Napi::Function>();
-        Napi::Array arr = Napi::Array::New( Env() );
-        const int numRows = mySheet.getNumRows();
-        auto headers = mySheet.getHeaders();
-
-
-        for( int i = 0; i < numRows; ++i )
+    {   
+        try
         {
-            const auto row = mySheet.getRow( i );
-            Napi::Object obj = Napi::Object::New( Env() );
+            Napi::Array arr = Napi::Array::New( Env() );
+            const int numRows = mySheet.getNumRows();
+            auto headers = mySheet.getHeaders();
 
-            int j = 0;
-            for( auto cellIter = row.cbegin(); cellIter != row.cend(); ++cellIter, ++j )
+
+            for( int i = 0; i < numRows; ++i )
             {
-                const auto val = *cellIter;
-                const auto let = mySheet.getHeaders().at( j );
-                
-                if( val.getIsString() )
-                {
-                    obj.Set( Napi::String::New( Env(), let ), Napi::String::New( Env(), val.getString() ) );
-                }
-                else if( val.getIsInt() )
-                {
-                    obj.Set( Napi::String::New( Env(), let ), Napi::Number::New( Env(), static_cast<double>( val.getInt() ) ) );
-                }
-                else if( val.getIsDouble() )
-                {
-                    obj.Set( Napi::String::New( Env(), let ), Napi::Number::New( Env(), val.getDouble() ) );
-                }
-                else
-                {
-                    obj.Set( Napi::String::New( Env(), let ), Napi::Value{ Env(), Env().Null() } );
-                }
-            }
+                const auto row = mySheet.getRow( i );
+                Napi::Object obj = Napi::Object::New( Env() );
 
-            arr[i] = obj;
+                int j = 0;
+                for( auto cellIter = row.cbegin(); cellIter != row.cend(); ++cellIter, ++j )
+                {
+                    const auto val = *cellIter;
+
+                    if( j >= mySheet.getHeaders().size() )
+                    {
+                        throw std::runtime_error( "xlsx-util: something is wrong with the headers") ;
+                    }
+
+                    const auto let = mySheet.getHeaders().at( j );
+                    
+                    if( val.getIsString() )
+                    {
+                        obj.Set( Napi::String::New( Env(), let ), Napi::String::New( Env(), val.getString() ) );
+                    }
+                    else if( val.getIsInt() )
+                    {
+                        obj.Set( Napi::String::New( Env(), let ), Napi::Number::New( Env(), static_cast<double>( val.getInt() ) ) );
+                    }
+                    else if( val.getIsDouble() )
+                    {
+                        obj.Set( Napi::String::New( Env(), let ), Napi::Number::New( Env(), val.getDouble() ) );
+                    }
+                    else
+                    {
+                        obj.Set( Napi::String::New( Env(), let ), Napi::Value{ Env(), Env().Null() } );
+                    }
+                }
+
+                arr[i] = obj;
+            }
+                                                           // error      // result
+            Callback().MakeCallback( Receiver().Value(), { Env().Null(), arr } );
+        }   
+        catch( std::exception& e )
+        {
+            Callback().MakeCallback( Receiver().Value(), { Napi::Error::New( Env(), e.what() ).Value(), Env().Undefined() } );
         }
-                                                       // error      // result
-        Callback().MakeCallback( Receiver().Value(), { Env().Null(), arr } );
+        catch( ... )
+        {
+            Callback().MakeCallback( Receiver().Value(), { Napi::Error::New( Env(), "xlsx-util: error occurred during 'OnOK'" ).Value(), Env().Undefined() } );
+        }
     }
 
 
