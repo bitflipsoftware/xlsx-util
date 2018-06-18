@@ -1,5 +1,4 @@
 #include "Val.h"
-#include <regex>
 #include <iostream>
 #include <cmath>
 #include <sstream>
