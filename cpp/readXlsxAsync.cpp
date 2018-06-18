@@ -2,6 +2,7 @@
 #include "readXlsxAsync.h"
 #include "AsyncReader.h"
 #include "AsyncError.h"
+#include "normalizeString.h"
 #include <set>
 
 // filepathString, doReadHeaders, headerTransformObj, columnsToDeleteArr, doPascalCase, pascalWords, (error, result) =>
@@ -11,8 +12,6 @@ namespace xlsx
     void readXlsxAsync( const Napi::CallbackInfo& info )
     {
         Napi::Env env = info.Env();
-        // std::unique_ptr<Napi::HandleScope> scope{ new Napi::HandleScope{ env } };
-        // std::unique_ptr<Napi::EscapableHandleScope> scope = nullptr;
 
         // we need to check for the presence of a client callback function
         // and if we do not have one then we must raise a synchronous error
@@ -65,7 +64,7 @@ namespace xlsx
                     const std::string val = valNapi.Utf8Value();
                     if( !key.empty() && !val.empty() )
                     {
-                        transformMap[key] = val;
+                        transformMap[normalizeString( key )] = val;
                     }
                 }
             }
