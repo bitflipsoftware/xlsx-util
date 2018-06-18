@@ -38,5 +38,9 @@ namespace xlsx
         std::string myString;
         double myDouble;
         int myInt;
+
+    private:
+        static bool isScientificOrDecimal( const std::string& inVal, double& outVal );
+        static bool isInteger( const std::string& inVal, int& outVal );
     };
 }
