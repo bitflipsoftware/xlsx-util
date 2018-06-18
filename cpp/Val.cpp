@@ -184,7 +184,7 @@ namespace xlsx
                 }
                 else if( std::isdigit( static_cast<unsigned char>( c ) ) )
                 {
-                    part = SciPart::baseDec;
+                    part = SciPart::baseInt;
                     base << c;
                 }
                 else
@@ -236,7 +236,6 @@ namespace xlsx
             {
                 if( c == 'E' || c == 'e' )
                 {
-                    base << c;
                     part = SciPart::e;
                 }
                 else if( std::isdigit( static_cast<unsigned char>( c ) ) )
@@ -299,7 +298,7 @@ namespace xlsx
         const double baseDouble = std::stod( b );
         const double expDouble = std::stod( e );
         const double multDouble = std::pow( 10.0, expDouble );
-        const double valueDouble = expDouble * multDouble;
+        const double valueDouble = baseDouble * multDouble;
         outVal = valueDouble;
         return true;
     }
