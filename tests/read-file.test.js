@@ -1,6 +1,5 @@
 const xlsx = require('../index')
 const path = require('path')
-const Constants = require('/Users/mjb/Documents/repos/iqbid/iqbak/src/constants')
 
 describe('readFile', () => {
     it('should return data', async (done) => {
@@ -208,27 +207,3 @@ describe('readFileWithHeaderTransformDeleteAndPascalCase', () => {
         done();
     })
 })
-
-// describe('bigFile', () => {
-//     it('should return data', async (done) => {
-//
-//         const headerTransformObj = {}
-//
-//         for(const [k, v] of Constants.COLUMNS.RENAME_MAP.entries()) {
-//             headerTransformObj[k] = v
-//         }
-//         const columnsToDeleteArr = Constants.COLUMNS.TASC_DELETE
-//         const pascalWords = [
-//             'Grp',
-//             'Npa',
-//             'Nxx',
-//             'Ocn',
-//         ]
-//
-//         const filepath = '/Users/mjb/Documents/repos/iqbid/aws/data/mvp-uber-test/twc-050418-inputs-pricing-analysis.xlsx'
-//         const result = await xlsx.readFileWithHeaderTransformDeleteAndPascalCase(filepath, headerTransformObj, columnsToDeleteArr, pascalWords).then().catch((e) => { throw e })
-//
-//         expect(result).toBeTruthy()
-//         done()
-//     }, 5000000)
-// })
