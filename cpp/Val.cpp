@@ -130,19 +130,7 @@ namespace xlsx
 
         double doubleVal = 0.0;
 
-        if( Val::isScientific( val, doubleVal ) )
-        {
-            setDouble( doubleVal );
-            return;
-        }
-
-        if( Val::isString( val ) )
-        {
-            setString( val );
-            return;
-        }
-
-        if( Val::isDecimal( val, doubleVal ) )
+        if( Val::isScientificOrDecimal( val, doubleVal ) )
         {
             setDouble( doubleVal );
             return;
@@ -166,7 +154,7 @@ namespace xlsx
 
 
     bool
-    Val::isScientific( const std::string& inVal, double& outVal )
+    Val::isScientificOrDecimal( const std::string& inVal, double& outVal )
     {
         outVal = 0.0;
         SciPart part = SciPart::start;
@@ -300,10 +288,13 @@ namespace xlsx
         {
             return false;
         }
-        
+
         if( e.empty() )
         {
-            return false;
+            // optimization, this is probably a decimal number so we will handle it
+            const double shortcutDouble = std::stod( b );
+            outVal = shortcutDouble;
+            return true;
         }
         
         const double baseDouble = std::stod( b );
@@ -312,30 +303,6 @@ namespace xlsx
         const double valueDouble = baseDouble * multDouble;
         outVal = valueDouble;
         return true;
-    }
-
-
-    bool
-    Val::isDecimal( const std::string& inVal, double& outVal )
-    {
-        outVal = 0.0;
-        const std::string patternDec = R"(^[-]?[0-9]+\.[0-9]+$)"; 
-        std::regex rxDec{ patternDec };
-        std::smatch matchDec;
-        const bool isDec = std::regex_search( inVal, matchDec, rxDec );
-
-        if( isDec )
-        {
-            if( matchDec.size() == 1 )
-            {
-                const std::string d = matchDec[0];
-                const double num = std::stod( d );
-                outVal = num;
-                return true;
-            }
-        }
-
-        return false;
     }
 
 
@@ -362,42 +329,5 @@ namespace xlsx
 
         outVal = std::stoi( inVal );
         return true;
-    }
-
-
-    bool
-    Val::isString( const std::string& inVal )
-    {
-        bool isStr = false;
-        bool isFirstChar = true;
-        int decCount = 0;
-
-        for( const auto& c : inVal )
-        {
-            if( isFirstChar && c == '-' )
-            {
-                isFirstChar = false;
-                continue;
-            }
-            else if( std::isdigit( static_cast<unsigned char>( c ) ) )
-            {
-                isFirstChar = false;
-                continue;
-            }
-            else if( c == '.' && decCount == 0 )
-            {
-                ++decCount;
-                isFirstChar = false;
-                continue;
-            }
-            else
-            {
-                return true;
-            }
-
-            isFirstChar = false;
-        }
-
-        return false;
     }
 }
