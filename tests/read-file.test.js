@@ -207,3 +207,22 @@ describe('readFileWithHeaderTransformDeleteAndPascalCase', () => {
         done();
     })
 })
+
+
+describe('sci bug', () => {
+    it('should recognize 1E-3 as scientific notation', async (done) => {
+        expect.assertions(5)
+
+        const filepath = path.join(__dirname, 'sci-bug.xlsx')
+        const result = await xlsx.readFile(filepath)
+
+        expect(result).toBeTruthy();
+        expect(Array.isArray(result)).toBeTruthy();
+        expect(result.length).toBe(5)
+
+        expect(result[0].A).toBeCloseTo(0.001, 10)
+        expect(result[1].A).toBeCloseTo(0.001, 10)
+
+        done();
+    })
+})
