@@ -1238,6 +1238,9 @@ extern int ZEXPORT unzLocateFile (unzFile file, const char *szFileName, int iCas
     unz64_s* s;
     int err;
 
+    if(szFileName == NULL) {
+        return UNZ_PARAMERROR;
+    }
     /* We remember the 'current' position in the file so that we can jump
      * back there if we fail.
      */

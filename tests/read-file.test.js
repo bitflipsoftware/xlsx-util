@@ -31,6 +31,7 @@ describe('readFile', () => {
     })
 })
 
+
 describe('readFile', () => {
     it('should throw on bad filename', async (done) => {
         expect.assertions(1)
@@ -151,7 +152,6 @@ describe('readFileWithHeaderTransformAndDelete', () => {
         done();
     })
 })
-
 
 
 describe('readFileWithHeaderTransformDeleteAndPascalCase', () => {

@@ -1220,7 +1220,7 @@ DLL_EXPORT_XLSXIO int xlsxioread_process (xlsxioreader handle, const XLSXIOCHAR*
   struct sharedstringlist* sharedstrings = sharedstringlist_create();
   struct shared_strings_callback_data sharedstringsdata;
   shared_strings_callback_data_initialize(&sharedstringsdata, sharedstrings);
-  if (expat_process_zip_file(handle->zip, getrelscallbackdata.sharedstringsfile, shared_strings_callback_find_sharedstringtable_start, NULL, NULL, &sharedstringsdata, &sharedstringsdata.xmlparser) != 0) {
+  if ((getrelscallbackdata.sharedstringsfile == NULL) || expat_process_zip_file(handle->zip, getrelscallbackdata.sharedstringsfile, shared_strings_callback_find_sharedstringtable_start, NULL, NULL, &sharedstringsdata, &sharedstringsdata.xmlparser) != 0) {
     //no shared strings found
     sharedstringlist_destroy(sharedstrings);
     sharedstrings = NULL;
