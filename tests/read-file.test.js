@@ -226,3 +226,21 @@ describe('sci bug', () => {
         done();
     })
 })
+
+// describe('namespace issue', () => {
+//     it('should stop sucking', async (done) => {
+//         expect.assertions(5)
+//
+//         const filepath = '/Users/mjb/Desktop/abc.xlsx'
+//         const result = await xlsx.readFile(filepath)
+//
+//         expect(result).toBeTruthy();
+//         expect(Array.isArray(result)).toBeTruthy();
+//         expect(result.length).toBe(5)
+//
+//         expect(result[0].A).toBeCloseTo(0.001, 10)
+//         expect(result[1].A).toBeCloseTo(0.001, 10)
+//
+//         done();
+//     }, 99999999)
+// })
