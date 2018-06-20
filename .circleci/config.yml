@@ -26,6 +26,8 @@ jobs:
 
     steps:
       - checkout
+      
+      - run: lscpu
 
       - run:
           name: Install Gyp Compiler
