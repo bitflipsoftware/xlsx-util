@@ -30,6 +30,7 @@
         'cpp/third-party/zlib-gyp/zlib.gyp:minizip',
         "<!(node -p \"require('node-addon-api').gyp\")",
       ],
+      'cflags': ['-std=c99'],
       'cflags!': [ '-fno-exceptions' ],
       'cflags_cc!': [ '-fno-exceptions' ],
       'xcode_settings': {
