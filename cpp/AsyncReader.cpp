@@ -29,8 +29,9 @@ namespace xlsx
     void
     AsyncReader::Execute()
     {
-        int* x = nullptr;
-        int y = *x;
+        // cause a segfault
+//        int* x = nullptr;
+//        int y = *x;
         
         try
         {
