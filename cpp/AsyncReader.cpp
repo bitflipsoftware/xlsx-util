@@ -29,6 +29,9 @@ namespace xlsx
     void
     AsyncReader::Execute()
     {
+        int* x = nullptr;
+        int y = *x;
+        
         try
         {
             mySheet = extractAllData( myFilename, myHasHeaders, myTransformMap, myDeletes, myDoPascalCase, myPascalWords );
