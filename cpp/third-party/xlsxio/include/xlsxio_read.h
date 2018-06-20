@@ -44,6 +44,7 @@ typedef unsigned __int64 uint64_t;
 #include <stdint.h>
 #endif
 #include <time.h>
+#include <stdbool.h>
 
 /*! \brief character type used (usually char, but when XML_UNICODE is defined wchar_t) */
 #ifndef XLSXIOCHAR
@@ -192,7 +193,7 @@ typedef int (*xlsxioread_process_row_callback_fn)(size_t row, size_t maxcol, voi
  * \sa     xlsxioread_process_row_callback_fn
  * \sa     xlsxioread_process_cell_callback_fn
  */
-DLL_EXPORT_XLSXIO int xlsxioread_process (xlsxioreader handle, const XLSXIOCHAR* sheetname, unsigned int flags, xlsxioread_process_cell_callback_fn cell_callback, xlsxioread_process_row_callback_fn row_callback, void* callbackdata);
+DLL_EXPORT_XLSXIO int xlsxioread_process (xlsxioreader handle, const XLSXIOCHAR* sheetname, unsigned int flags, xlsxioread_process_cell_callback_fn cell_callback, xlsxioread_process_row_callback_fn row_callback, void* callbackdata, bool doFindRelsFirst);
 
 
 

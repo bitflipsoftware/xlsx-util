@@ -124,7 +124,7 @@ void shared_strings_callback_skip_tag_end (void* callbackdata, const XML_Char* n
 void shared_strings_callback_find_sharedstringtable_start (void* callbackdata, const XML_Char* name, const XML_Char** atts)
 {
   struct shared_strings_callback_data* data = (struct shared_strings_callback_data*)callbackdata;
-  if (XML_Char_icmp(name, X("sst")) == 0) {
+    if ( (XML_Char_icmp(name, X("sst")) == 0) || (XML_Char_icmp(name, X("x:sst")) == 0)) {
     XML_SetElementHandler(data->xmlparser, shared_strings_callback_find_shared_stringitem_start, NULL);
   }
 }
@@ -132,7 +132,7 @@ void shared_strings_callback_find_sharedstringtable_start (void* callbackdata, c
 void shared_strings_callback_find_sharedstringtable_end (void* callbackdata, const XML_Char* name)
 {
   struct shared_strings_callback_data* data = (struct shared_strings_callback_data*)callbackdata;
-  if (XML_Char_icmp(name, X("sst")) == 0) {
+    if ((XML_Char_icmp(name, X("sst")) == 0) || (XML_Char_icmp(name, X("x:sst")) == 0)) {
     XML_SetElementHandler(data->xmlparser, shared_strings_callback_find_sharedstringtable_start, NULL);
   }
 }
@@ -140,7 +140,7 @@ void shared_strings_callback_find_sharedstringtable_end (void* callbackdata, con
 void shared_strings_callback_find_shared_stringitem_start (void* callbackdata, const XML_Char* name, const XML_Char** atts)
 {
   struct shared_strings_callback_data* data = (struct shared_strings_callback_data*)callbackdata;
-  if (XML_Char_icmp(name, X("si")) == 0) {
+    if ((XML_Char_icmp(name, X("si")) == 0) || (XML_Char_icmp(name, X("x:si")) == 0)) {
     if (data->text)
       free(data->text);
     data->text = NULL;
@@ -152,7 +152,7 @@ void shared_strings_callback_find_shared_stringitem_start (void* callbackdata, c
 void shared_strings_callback_find_shared_stringitem_end (void* callbackdata, const XML_Char* name)
 {
   struct shared_strings_callback_data* data = (struct shared_strings_callback_data*)callbackdata;
-  if (XML_Char_icmp(name, X("si")) == 0) {
+    if ((XML_Char_icmp(name, X("si"))) || (XML_Char_icmp(name, X("x:si")) == 0)) {
     sharedstringlist_add_buffer(data->sharedstrings, data->text, data->textlen);
     if (data->text)
       free(data->text);
@@ -167,10 +167,10 @@ void shared_strings_callback_find_shared_stringitem_end (void* callbackdata, con
 void shared_strings_callback_find_shared_string_start (void* callbackdata, const XML_Char* name, const XML_Char** atts)
 {
   struct shared_strings_callback_data* data = (struct shared_strings_callback_data*)callbackdata;
-  if (XML_Char_icmp(name, X("t")) == 0) {
+    if ((XML_Char_icmp(name, X("t")) == 0) || (XML_Char_icmp(name, X("x:t")) == 0)) {
     XML_SetElementHandler(data->xmlparser, NULL, shared_strings_callback_find_shared_string_end);
     XML_SetCharacterDataHandler(data->xmlparser, shared_strings_callback_string_data);
-  } else if (XML_Char_icmp(name, X("rPh")) == 0) {
+    } else if ((XML_Char_icmp(name, X("rPh"))) || (XML_Char_icmp(name, X("x:rPh")) == 0)) {
     data->skiptag = XML_Char_dup(name);
     data->skiptagcount = 1;
     data->skip_start = shared_strings_callback_find_shared_string_start;
@@ -184,7 +184,7 @@ void shared_strings_callback_find_shared_string_start (void* callbackdata, const
 void shared_strings_callback_find_shared_string_end (void* callbackdata, const XML_Char* name)
 {
   struct shared_strings_callback_data* data = (struct shared_strings_callback_data*)callbackdata;
-  if (XML_Char_icmp(name, X("t")) == 0) {
+    if ((XML_Char_icmp(name, X("t"))) || (XML_Char_icmp(name, X("x:t")) == 0)) {
     XML_SetElementHandler(data->xmlparser, shared_strings_callback_find_shared_string_start, shared_strings_callback_find_shared_stringitem_end);
     XML_SetCharacterDataHandler(data->xmlparser, NULL);
   } else {
