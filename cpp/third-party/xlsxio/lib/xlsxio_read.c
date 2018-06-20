@@ -696,7 +696,8 @@ unzGetGlobalInfo(data->zip, &zipglobalinfo);
               data->filecallbackfn(data->zip, filename, contenttype, data->filecallbackdata);
               
               // prevent the endless loop
-              for( int x = 0; x < fileindex && status == UNZ_OK; ++x ) {
+              int looperx = 0;
+              for( looperx = 0; looperx < fileindex && status == UNZ_OK; ++looperx ) {
                   status = unzGoToNextFile(data->zip);
               }
           }
