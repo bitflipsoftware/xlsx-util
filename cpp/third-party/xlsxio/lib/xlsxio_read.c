@@ -637,17 +637,31 @@ unz_global_info zipglobalinfo;
 unzGetGlobalInfo(data->zip, &zipglobalinfo);
         buf = (char*)malloc(buflen = UNZIP_FILENAME_BUFFER_STEP);
         status = unzGoToFirstFile(data->zip);
+          
+          // this loop is problematic
+          
+          int fileindex = 0;
         while (status == UNZ_OK) {
           buf[buflen - 1] = 0;
-          while ((status = unzGetCurrentFileInfo(data->zip, NULL, buf, buflen, NULL, 0, NULL, 0)) == UNZ_OK && buf[buflen - 1] != 0) {
+        unz_file_info* finfo = malloc(sizeof(unz_file_info));
+            
+            // this was previously crashing because we were passing NULL as the second argument
+        while ((status = unzGetCurrentFileInfo(data->zip, finfo, buf, buflen, NULL, 0, NULL, 0)) == UNZ_OK && buf[buflen - 1] != 0) {
             buflen += UNZIP_FILENAME_BUFFER_STEP;
             buf = (char*)realloc(buf, buflen);
             buf[buflen - 1] = 0;
           }
-          if (status != UNZ_OK)
+            free(finfo);
+            finfo = NULL;
+
+            if (status != UNZ_OK) {
             break;
+            }
           filename = XML_Char_dupchar(buf);
           status = unzGoToNextFile(data->zip);
+            ++fileindex;
+//            unz64_s* s = (unz64_s*)data->zip;
+//            ZPOS64_T currnumfile = s->num_file;
 #else
         zip_int64_t i;
         zip_int64_t zipnumfiles = zip_get_num_entries(data->zip, 0);
@@ -655,15 +669,24 @@ unzGetGlobalInfo(data->zip, &zipglobalinfo);
           filename = XML_Char_dupchar(zip_get_name(data->zip, i, ZIP_FL_ENC_GUESS));
 #endif
           filenamelen = XML_Char_len(filename);
+            
+            // if the extension is a match
           if (filenamelen > extensionlen && filename[filenamelen - extensionlen - 1] == '.' && XML_Char_icmp(filename + filenamelen - extensionlen, extension) == 0) {
-            data->filecallbackfn(data->zip, filename, contenttype, data->filecallbackdata);
+            
+              // this call causes data->zip->num_file to revert to zero causing an endless loop?
+              data->filecallbackfn(data->zip, filename, contenttype, data->filecallbackdata);
+              
+              // prevent the endless loop
+              for( int x = 0; x < fileindex && status == UNZ_OK; ++x ) {
+                  status = unzGoToNextFile(data->zip);
+              }
           }
           free(filename);
         }
 #ifdef USE_MINIZIP
         free(buf);
 #endif
-      }
+      } // while (status == UNZ_OK)
     }
   }
 }
