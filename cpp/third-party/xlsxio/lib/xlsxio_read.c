@@ -7,6 +7,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <expat.h>
+#include <stdbool.h>
 
 #ifdef USE_MINIZIP
 #include <minizip/unzip.h>
@@ -255,10 +256,22 @@ XML_Char* join_basepath_filename (const XML_Char* basepath, const XML_Char* file
 {
   XML_Char* result = NULL;
   if (filename && *filename) {
+      
+
+      
     size_t basepathlen = (basepath ? XML_Char_len(basepath) : 0);
     size_t filenamelen = XML_Char_len(filename);
     if ((result = XML_Char_malloc(basepathlen + filenamelen + 1)) != NULL) {
-      if (basepathlen > 0)
+
+        if(filename[0] == '/') {
+            // the filename is written as an 'absolute' path, we need to
+            // remove the leading slash, but otherwise return as-is
+            XML_Char_poscpy(result, 0, filename + 1, filenamelen - 1);
+            result[filenamelen - 1] = 0;
+            return result;
+        }
+        
+        if (basepathlen > 0)
         XML_Char_poscpy(result, 0, basepath, basepathlen);
       XML_Char_poscpy(result, basepathlen, filename, filenamelen);
       result[basepathlen + filenamelen] = 0;
@@ -602,6 +615,7 @@ struct iterate_files_by_contenttype_callback_data {
   const XML_Char* contenttype;
   contenttype_file_callback_fn filecallbackfn;
   void* filecallbackdata;
+    bool doFindRelsFirst;
 };
 
 //expat callback function for element start used by iterate_files_by_contenttype
@@ -625,6 +639,11 @@ void iterate_files_by_contenttype_expat_callback_element_start (void* callbackda
     const XML_Char* extension;
     if ((contenttype = get_expat_attr_by_name(atts, X("ContentType"))) != NULL && XML_Char_icmp(contenttype, data->contenttype) == 0) {
       if ((extension = get_expat_attr_by_name(atts, X("Extension"))) != NULL) {
+//          if( data->doFindRelsFirst && XML_Char_icmp( X( "rels" ), extension ) != 0 )
+//          {
+//              extension = X("rels");
+//              
+//          }
         XML_Char* filename;
         size_t filenamelen;
         size_t extensionlen = XML_Char_len(extension);
@@ -637,17 +656,31 @@ unz_global_info zipglobalinfo;
 unzGetGlobalInfo(data->zip, &zipglobalinfo);
         buf = (char*)malloc(buflen = UNZIP_FILENAME_BUFFER_STEP);
         status = unzGoToFirstFile(data->zip);
+          
+          // this loop is problematic
+          
+          int fileindex = 0;
         while (status == UNZ_OK) {
           buf[buflen - 1] = 0;
-          while ((status = unzGetCurrentFileInfo(data->zip, NULL, buf, buflen, NULL, 0, NULL, 0)) == UNZ_OK && buf[buflen - 1] != 0) {
+        unz_file_info* finfo = malloc(sizeof(unz_file_info));
+            
+            // this was previously crashing because we were passing NULL as the second argument
+        while ((status = unzGetCurrentFileInfo(data->zip, finfo, buf, buflen, NULL, 0, NULL, 0)) == UNZ_OK && buf[buflen - 1] != 0) {
             buflen += UNZIP_FILENAME_BUFFER_STEP;
             buf = (char*)realloc(buf, buflen);
             buf[buflen - 1] = 0;
           }
-          if (status != UNZ_OK)
+            free(finfo);
+            finfo = NULL;
+
+            if (status != UNZ_OK) {
             break;
+            }
           filename = XML_Char_dupchar(buf);
           status = unzGoToNextFile(data->zip);
+            ++fileindex;
+//            unz64_s* s = (unz64_s*)data->zip;
+//            ZPOS64_T currnumfile = s->num_file;
 #else
         zip_int64_t i;
         zip_int64_t zipnumfiles = zip_get_num_entries(data->zip, 0);
@@ -655,27 +688,38 @@ unzGetGlobalInfo(data->zip, &zipglobalinfo);
           filename = XML_Char_dupchar(zip_get_name(data->zip, i, ZIP_FL_ENC_GUESS));
 #endif
           filenamelen = XML_Char_len(filename);
+            
+            // if the extension is a match
           if (filenamelen > extensionlen && filename[filenamelen - extensionlen - 1] == '.' && XML_Char_icmp(filename + filenamelen - extensionlen, extension) == 0) {
-            data->filecallbackfn(data->zip, filename, contenttype, data->filecallbackdata);
+            
+              // this call causes data->zip->num_file to revert to zero causing an endless loop?
+              data->filecallbackfn(data->zip, filename, contenttype, data->filecallbackdata);
+              
+              // prevent the endless loop
+              int looperx = 0;
+              for( looperx = 0; looperx < fileindex && status == UNZ_OK; ++looperx ) {
+                  status = unzGoToNextFile(data->zip);
+              }
           }
           free(filename);
         }
 #ifdef USE_MINIZIP
         free(buf);
 #endif
-      }
+      } // while (status == UNZ_OK)
     }
   }
 }
 
 //list file names by content type
-int iterate_files_by_contenttype (ZIPFILETYPE* zip, const XML_Char* contenttype, contenttype_file_callback_fn filecallbackfn, void* filecallbackdata, XML_Parser* xmlparser)
+int iterate_files_by_contenttype (ZIPFILETYPE* zip, const XML_Char* contenttype, contenttype_file_callback_fn filecallbackfn, void* filecallbackdata, XML_Parser* xmlparser, bool doFindRelsFirst)
 {
   struct iterate_files_by_contenttype_callback_data callbackdata = {
     .zip = zip,
     .contenttype = contenttype,
     .filecallbackfn = filecallbackfn,
-    .filecallbackdata = filecallbackdata
+    .filecallbackdata = filecallbackdata,
+      .doFindRelsFirst = doFindRelsFirst
   };
   return expat_process_zip_file(zip, X("[Content_Types].xml"), iterate_files_by_contenttype_expat_callback_element_start, NULL, NULL, &callbackdata, xmlparser);
 }
@@ -694,7 +738,7 @@ void main_sheet_list_expat_callback_element_start (void* callbackdata, const XML
 {
   struct main_sheet_list_callback_data* data = (struct main_sheet_list_callback_data*)callbackdata;
   if (data && data->callback) {
-    if (XML_Char_icmp(name, X("sheet")) == 0) {
+      if ((XML_Char_icmp(name, X("sheet")) == 0) || (XML_Char_icmp(name, X("x:sheet")) == 0)) {
       const XML_Char* sheetname;
       //const XML_Char* relid = get_expat_attr_by_name(atts, X("r:id"));
       if ((sheetname = get_expat_attr_by_name(atts, X("name"))) != NULL) {
@@ -732,7 +776,7 @@ DLL_EXPORT_XLSXIO void xlsxioread_list_sheets (xlsxioreader handle, xlsxioread_l
     .callback = callback,
     .callbackdata = callbackdata
   };
-  iterate_files_by_contenttype(handle->zip, X("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"), xlsxioread_list_sheets_callback, &sheetcallbackdata, &sheetcallbackdata.xmlparser);
+  iterate_files_by_contenttype(handle->zip, X("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"), xlsxioread_list_sheets_callback, &sheetcallbackdata, &sheetcallbackdata.xmlparser, false);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -752,8 +796,13 @@ struct main_sheet_get_rels_callback_data {
 void main_sheet_get_relid_expat_callback_element_start (void* callbackdata, const XML_Char* name, const XML_Char** atts)
 {
   struct main_sheet_get_rels_callback_data* data = (struct main_sheet_get_rels_callback_data*)callbackdata;
-  if (XML_Char_icmp(name, X("sheet")) == 0) {
+
+    // TODO match even if the file uses a namespace such as x:sheet
+    
+    if ( (XML_Char_icmp(name, X("sheet")) == 0) || (XML_Char_icmp(name, X("x:sheet")) == 0) ) {
+    
     const XML_Char* name = get_expat_attr_by_name(atts, X("name"));
+    
     if (!data->sheetname || XML_Char_icmp(name, data->sheetname) == 0) {
       const XML_Char* relid = get_expat_attr_by_name(atts, X("r:id"));
       if (relid && *relid) {
@@ -926,7 +975,7 @@ void data_sheet_expat_callback_value_data (void* callbackdata, const XML_Char* b
 void data_sheet_expat_callback_find_worksheet_start (void* callbackdata, const XML_Char* name, const XML_Char** atts)
 {
   struct data_sheet_callback_data* data = (struct data_sheet_callback_data*)callbackdata;
-  if (XML_Char_icmp(name, X("worksheet")) == 0) {
+    if ( (XML_Char_icmp(name, X("worksheet")) == 0) || (XML_Char_icmp(name, X("x:worksheet")) == 0)) {
     XML_SetElementHandler(data->xmlparser, data_sheet_expat_callback_find_sheetdata_start, NULL);
   }
 }
@@ -934,7 +983,7 @@ void data_sheet_expat_callback_find_worksheet_start (void* callbackdata, const X
 void data_sheet_expat_callback_find_worksheet_end (void* callbackdata, const XML_Char* name)
 {
   struct data_sheet_callback_data* data = (struct data_sheet_callback_data*)callbackdata;
-  if (XML_Char_icmp(name, X("worksheet")) == 0) {
+    if ( (XML_Char_icmp(name, X("worksheet")) == 0) || (XML_Char_icmp(name, X("x:worksheet")) == 0) ) {
     XML_SetElementHandler(data->xmlparser, data_sheet_expat_callback_find_worksheet_start, NULL);
   }
 }
@@ -942,7 +991,7 @@ void data_sheet_expat_callback_find_worksheet_end (void* callbackdata, const XML
 void data_sheet_expat_callback_find_sheetdata_start (void* callbackdata, const XML_Char* name, const XML_Char** atts)
 {
   struct data_sheet_callback_data* data = (struct data_sheet_callback_data*)callbackdata;
-  if (XML_Char_icmp(name, X("sheetData")) == 0) {
+  if ( (XML_Char_icmp(name, X("sheetData")) == 0) || (XML_Char_icmp(name, X("x:sheetData")) == 0) ) {
     XML_SetElementHandler(data->xmlparser, data_sheet_expat_callback_find_row_start, data_sheet_expat_callback_find_sheetdata_end);
   }
 }
@@ -950,7 +999,7 @@ void data_sheet_expat_callback_find_sheetdata_start (void* callbackdata, const X
 void data_sheet_expat_callback_find_sheetdata_end (void* callbackdata, const XML_Char* name)
 {
   struct data_sheet_callback_data* data = (struct data_sheet_callback_data*)callbackdata;
-  if (XML_Char_icmp(name, X("sheetData")) == 0) {
+  if ( (XML_Char_icmp(name, X("sheetData")) == 0) || (XML_Char_icmp(name, X("x:sheetData")) == 0) ) {
     XML_SetElementHandler(data->xmlparser, data_sheet_expat_callback_find_sheetdata_start, data_sheet_expat_callback_find_worksheet_end);
   } else {
     data_sheet_expat_callback_find_worksheet_end(callbackdata, name);
@@ -960,7 +1009,7 @@ void data_sheet_expat_callback_find_sheetdata_end (void* callbackdata, const XML
 void data_sheet_expat_callback_find_row_start (void* callbackdata, const XML_Char* name, const XML_Char** atts)
 {
   struct data_sheet_callback_data* data = (struct data_sheet_callback_data*)callbackdata;
-  if (XML_Char_icmp(name, X("row")) == 0) {
+    if ((XML_Char_icmp(name, X("row")) == 0) || (XML_Char_icmp(name, X("x:row")) == 0)) {
     const XML_Char* hidden = get_expat_attr_by_name(atts, X("hidden"));
     if (!hidden || XML_Char_tol(hidden) == 0) {//nesting level for current tag to skip
 //start handler to set after skipping
@@ -984,7 +1033,7 @@ void data_sheet_expat_callback_find_row_start (void* callbackdata, const XML_Cha
 void data_sheet_expat_callback_find_row_end (void* callbackdata, const XML_Char* name)
 {
   struct data_sheet_callback_data* data = (struct data_sheet_callback_data*)callbackdata;
-  if (XML_Char_icmp(name, X("row")) == 0) {
+  if ( (XML_Char_icmp(name, X("row")) == 0) || (XML_Char_icmp(name, X("x:row")) == 0) ) {
     //determine number of columns based on first row
     if (data->rownr == 1 && data->cols == 0)
       data->cols = data->colnr;
@@ -1023,7 +1072,7 @@ void data_sheet_expat_callback_find_row_end (void* callbackdata, const XML_Char*
 void data_sheet_expat_callback_find_cell_start (void* callbackdata, const XML_Char* name, const XML_Char** atts)
 {
   struct data_sheet_callback_data* data = (struct data_sheet_callback_data*)callbackdata;
-  if (XML_Char_icmp(name, X("c")) == 0) {
+    if ( (XML_Char_icmp(name, X("c")) == 0) || (XML_Char_icmp(name, X("x:c")) == 0)) {
     const XML_Char* t = get_expat_attr_by_name(atts, X("r"));
     size_t cellcolnr = get_col_nr(t);
     //skip everything when out of bounds
@@ -1080,7 +1129,7 @@ void data_sheet_expat_callback_find_cell_start (void* callbackdata, const XML_Ch
       }
     }
     //determing value type
-    if ((t = get_expat_attr_by_name(atts, X("t"))) != NULL && XML_Char_icmp(t, X("s")) == 0)
+    if ( ((t = get_expat_attr_by_name(atts, X("t"))) != NULL && XML_Char_icmp(t, X("s")) == 0) || ((t = get_expat_attr_by_name(atts, X("x:t"))) != NULL && XML_Char_icmp(t, X("x:s")) == 0) )
       data->cell_string_type = shared_string;
     else
       data->cell_string_type = value_string;
@@ -1095,7 +1144,7 @@ void data_sheet_expat_callback_find_cell_start (void* callbackdata, const XML_Ch
 void data_sheet_expat_callback_find_cell_end (void* callbackdata, const XML_Char* name)
 {
   struct data_sheet_callback_data* data = (struct data_sheet_callback_data*)callbackdata;
-  if (XML_Char_icmp(name, X("c")) == 0) {
+    if ((XML_Char_icmp(name, X("c")) == 0) || (XML_Char_icmp(name, X("x:c")) == 0)) {
     //determine value
     if (data->celldata) {
       const XML_Char* s = NULL;
@@ -1146,12 +1195,12 @@ void data_sheet_expat_callback_find_cell_end (void* callbackdata, const XML_Char
 void data_sheet_expat_callback_find_value_start (void* callbackdata, const XML_Char* name, const XML_Char** atts)
 {
   struct data_sheet_callback_data* data = (struct data_sheet_callback_data*)callbackdata;
-  if (XML_Char_icmp(name, X("v")) == 0 || XML_Char_icmp(name, X("t")) == 0) {
+    if ( (XML_Char_icmp(name, X("v")) == 0 || XML_Char_icmp(name, X("t")) == 0) || (XML_Char_icmp(name, X("x:v")) == 0 || XML_Char_icmp(name, X("x:t")) == 0) ) {
     XML_SetElementHandler(data->xmlparser, NULL, data_sheet_expat_callback_find_value_end);
     XML_SetCharacterDataHandler(data->xmlparser, data_sheet_expat_callback_value_data);
-  } else if (XML_Char_icmp(name, X("is")) == 0) {
+  } else if ( (XML_Char_icmp(name, X("is")) == 0) || (XML_Char_icmp(name, X("x:is")) == 0) ) {
     data->cell_string_type = inline_string;
-  } else if (XML_Char_icmp(name, X("rPh")) == 0) {
+  } else if ( (XML_Char_icmp(name, X("rPh")) == 0) || (XML_Char_icmp(name, X("x:rPh")) == 0) ) {
     data->skiptag = XML_Char_dup(name);
     data->skiptagcount = 1;
     data->skip_start = data_sheet_expat_callback_find_value_start;
@@ -1165,10 +1214,10 @@ void data_sheet_expat_callback_find_value_start (void* callbackdata, const XML_C
 void data_sheet_expat_callback_find_value_end (void* callbackdata, const XML_Char* name)
 {
   struct data_sheet_callback_data* data = (struct data_sheet_callback_data*)callbackdata;
-  if (XML_Char_icmp(name, X("v")) == 0 || XML_Char_icmp(name, X("t")) == 0) {
+    if ( (XML_Char_icmp(name, X("v")) == 0 || XML_Char_icmp(name, X("t")) == 0) || (XML_Char_icmp(name, X("x:v")) == 0 || XML_Char_icmp(name, X("x:t")) == 0)) {
     XML_SetElementHandler(data->xmlparser, data_sheet_expat_callback_find_value_start, data_sheet_expat_callback_find_cell_end);
     XML_SetCharacterDataHandler(data->xmlparser, NULL);
-  } else if (XML_Char_icmp(name, X("is")) == 0) {
+    } else if ((XML_Char_icmp(name, X("is")) == 0) || (XML_Char_icmp(name, X("x:is")) == 0)) {
     data->cell_string_type = none;
   } else {
     data_sheet_expat_callback_find_row_end(callbackdata, name);
@@ -1202,7 +1251,7 @@ struct xlsxio_read_sheet_struct {
   size_t paddingcol;
 };
 
-DLL_EXPORT_XLSXIO int xlsxioread_process (xlsxioreader handle, const XLSXIOCHAR* sheetname, unsigned int flags, xlsxioread_process_cell_callback_fn cell_callback, xlsxioread_process_row_callback_fn row_callback, void* callbackdata)
+DLL_EXPORT_XLSXIO int xlsxioread_process (xlsxioreader handle, const XLSXIOCHAR* sheetname, unsigned int flags, xlsxioread_process_cell_callback_fn cell_callback, xlsxioread_process_row_callback_fn row_callback, void* callbackdata, bool doFindRelsFirst)
 {
   int result = 0;
   //determine sheet file name
@@ -1214,13 +1263,14 @@ DLL_EXPORT_XLSXIO int xlsxioread_process (xlsxioreader handle, const XLSXIOCHAR*
     .sharedstringsfile = NULL,
     .stylesfile = NULL
   };
-  iterate_files_by_contenttype(handle->zip, X("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"), main_sheet_get_sheetfile_callback, &getrelscallbackdata, NULL);
+
+    iterate_files_by_contenttype(handle->zip, X("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"), main_sheet_get_sheetfile_callback, &getrelscallbackdata, NULL, doFindRelsFirst);
 
   //process shared strings
   struct sharedstringlist* sharedstrings = sharedstringlist_create();
   struct shared_strings_callback_data sharedstringsdata;
   shared_strings_callback_data_initialize(&sharedstringsdata, sharedstrings);
-  if (expat_process_zip_file(handle->zip, getrelscallbackdata.sharedstringsfile, shared_strings_callback_find_sharedstringtable_start, NULL, NULL, &sharedstringsdata, &sharedstringsdata.xmlparser) != 0) {
+  if ((getrelscallbackdata.sharedstringsfile == NULL) || expat_process_zip_file(handle->zip, getrelscallbackdata.sharedstringsfile, shared_strings_callback_find_sharedstringtable_start, NULL, NULL, &sharedstringsdata, &sharedstringsdata.xmlparser) != 0) {
     //no shared strings found
     sharedstringlist_destroy(sharedstrings);
     sharedstrings = NULL;
@@ -1284,7 +1334,7 @@ DLL_EXPORT_XLSXIO xlsxioreadersheetlist xlsxioread_sheetlist_open (xlsxioreader 
 {
   //determine main sheet name
   XML_Char* mainsheetfile = NULL;
-  iterate_files_by_contenttype(handle->zip, X("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"), xlsxioread_find_main_sheet_file_callback, &mainsheetfile, NULL);
+  iterate_files_by_contenttype(handle->zip, X("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"), xlsxioread_find_main_sheet_file_callback, &mainsheetfile, NULL, false);
   if (!mainsheetfile)
     return NULL;
   //process contents of main sheet
@@ -1347,7 +1397,8 @@ DLL_EXPORT_XLSXIO xlsxioreadersheet xlsxioread_sheet_open (xlsxioreader handle, 
   result->paddingrow = 0;
   result->lastcolnr = 0;
   result->paddingcol = 0;
-  xlsxioread_process(handle, sheetname, flags | XLSXIOREAD_NO_CALLBACK, NULL, NULL, result);
+    bool doFindRelsFirst = true;
+  xlsxioread_process(handle, sheetname, flags | XLSXIOREAD_NO_CALLBACK, NULL, NULL, result, doFindRelsFirst);
   return result;
 }
 

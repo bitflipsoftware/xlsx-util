@@ -69,8 +69,13 @@ namespace xlsx
         int maxRowSize = 0;
         bool isFirstRow = true;
         std::vector<std::string> headers;
+        sheet = xlsxioread_sheet_open( xreader.getReader(), sheetname, XLSXIOREAD_SKIP_EMPTY_ROWS );
 
-        if( ( sheet = xlsxioread_sheet_open( xreader.getReader(), sheetname, XLSXIOREAD_SKIP_EMPTY_ROWS ) ) != NULL )
+        if( sheet == nullptr )
+        {
+            throw std::runtime_error( "xlsxio was unable to find the first sheet." );
+        }
+        else
         {
             while( xlsxioread_sheet_next_row( sheet ) )
             {
