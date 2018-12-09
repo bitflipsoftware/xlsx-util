@@ -209,19 +209,46 @@ describe('readFileWithHeaderTransformDeleteAndPascalCase', () => {
 })
 
 
-describe('sci bug', () => {
-    it('should recognize 1E-3 as scientific notation', async (done) => {
-        expect.assertions(5)
+describe('readFileWithHeaderTransformDeleteAndPascalCaseAndStringColumns', () => {
+    it('should return leave Ocn strings alone', async (done) => {
+        expect.assertions(13)
 
-        const filepath = path.join(__dirname, 'sci-bug.xlsx')
-        const result = await xlsx.readFile(filepath)
+        const filepath = path.join(__dirname, 'stringColumns.xlsx')
+
+        const transform = {
+            TransformMe: 'Bones'
+        }
+
+        const deletes = []
+        const pascalWords = [ 'Ocn' ]
+        const stringColumns = [ 'Ocn' ]
+
+        const result = await xlsx.readFileWithHeaderTransformDeleteAndPascalCaseAndStringColumns(filepath, transform, deletes, pascalWords, stringColumns)
 
         expect(result).toBeTruthy();
         expect(Array.isArray(result)).toBeTruthy();
-        expect(result.length).toBe(5)
+        expect(result.length).toBe(9)
 
-        expect(result[0].A).toBeCloseTo(0.001, 10)
-        expect(result[1].A).toBeCloseTo(0.001, 10)
+        // ThisIsAHeader	ThisIsAnotherHeader	SomeGrp	CurRate	SgsHsc	LiveFree	Bones	One23Hello
+        let r = 0
+        expect(result[r].NotOcn).toBe(123)
+        expect(result[r].Ocn).toBe('123E')
+
+        r = 1
+        expect(result[r].NotOcn).toBe(5160)
+        expect(result[r].Ocn).toBe('5160')
+
+        r = 2
+        expect(result[r].NotOcn).toBe(123)
+        expect(result[r].Ocn).toBe('0123')
+
+        r = 3
+        expect(result[r].NotOcn).toBe(1234)
+        expect(result[r].Ocn).toBe('1234')
+
+        r = 8
+        expect(result[r].NotOcn).toBe(123456789)
+        expect(result[r].Ocn).toBe('123456789')
 
         done();
     })

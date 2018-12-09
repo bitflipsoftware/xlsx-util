@@ -1,12 +1,12 @@
 const nativeModule = require('bindings')('xlsx')
 
-const privatePromiseWrap = (filepathString, doReadHeaders, headerTransformObj, columnsToDeleteArr, doPascalCase, pascalWords)  => new Promise( (resolve, reject) => {
+const privatePromiseWrap = (filepathString, doReadHeaders, headerTransformObj, columnsToDeleteArr, doPascalCase, pascalWords, stringColumns)  => new Promise( (resolve, reject) => {
     try {
         if (!filepathString || typeof filepathString !== 'string') {
             throw new Error('first argument must be a filepath in the form of a string')
         }
 
-        nativeModule.readXlsxAsync(filepathString, doReadHeaders, headerTransformObj, columnsToDeleteArr, doPascalCase, pascalWords, (error, result) => {
+        nativeModule.readXlsxAsync(filepathString, doReadHeaders, headerTransformObj, columnsToDeleteArr, doPascalCase, pascalWords, stringColumns, (error, result) => {
             if(error) {
                 reject(error)
             } else if (result) {
@@ -23,7 +23,7 @@ const privatePromiseWrap = (filepathString, doReadHeaders, headerTransformObj, c
 const readFile = (filepathString) => new Promise( async (resolve, reject) => {
     try {
         const columnsToDeleteArr = []
-        const result = await privatePromiseWrap(filepathString, false, null, columnsToDeleteArr, false, null)
+        const result = await privatePromiseWrap(filepathString, false, null, columnsToDeleteArr, false, null, [])
         resolve(result)
     } catch (e) {
         reject(e)
@@ -33,7 +33,7 @@ const readFile = (filepathString) => new Promise( async (resolve, reject) => {
 const readFileWithHeaders = (filepathString) => new Promise( async (resolve, reject) => {
     try {
         const columnsToDeleteArr = []
-        const result = await privatePromiseWrap(filepathString, true, null, columnsToDeleteArr, false, null)
+        const result = await privatePromiseWrap(filepathString, true, null, columnsToDeleteArr, false, null, [])
         resolve(result)
     } catch (e) {
         reject(e)
@@ -43,7 +43,7 @@ const readFileWithHeaders = (filepathString) => new Promise( async (resolve, rej
 const readFileWithHeaderTransform = (filepathString, headerTransformObj) => new Promise( async (resolve, reject) => {
     try {
         const columnsToDeleteArr = []
-        const result = await privatePromiseWrap(filepathString, true, headerTransformObj, columnsToDeleteArr, false, null)
+        const result = await privatePromiseWrap(filepathString, true, headerTransformObj, columnsToDeleteArr, false, null, [])
         resolve(result)
     } catch (e) {
         reject(e)
@@ -52,7 +52,7 @@ const readFileWithHeaderTransform = (filepathString, headerTransformObj) => new 
 
 const readFileWithHeaderTransformAndDelete = (filepathString, headerTransformFunc, columnsToDeleteArr) => new Promise( async (resolve, reject) => {
     try {
-        const result = await privatePromiseWrap(filepathString, true, headerTransformFunc, columnsToDeleteArr, false, null)
+        const result = await privatePromiseWrap(filepathString, true, headerTransformFunc, columnsToDeleteArr, false, null, [])
         resolve(result)
     } catch (e) {
         reject(e)
@@ -61,7 +61,16 @@ const readFileWithHeaderTransformAndDelete = (filepathString, headerTransformFun
 
 const readFileWithHeaderTransformDeleteAndPascalCase = (filepathString, headerTransformFunc, columnsToDeleteArr, pascalWords) => new Promise( async (resolve, reject) => {
     try {
-        const result = await privatePromiseWrap(filepathString, true, headerTransformFunc, columnsToDeleteArr, true, pascalWords)
+        const result = await privatePromiseWrap(filepathString, true, headerTransformFunc, columnsToDeleteArr, true, pascalWords, [])
+        resolve(result)
+    } catch (e) {
+        reject(e)
+    }
+})
+
+const readFileWithHeaderTransformDeleteAndPascalCaseAndStringColumns = (filepathString, headerTransformFunc, columnsToDeleteArr, pascalWords, stringColumns) => new Promise( async (resolve, reject) => {
+    try {
+        const result = await privatePromiseWrap(filepathString, true, headerTransformFunc, columnsToDeleteArr, true, pascalWords, stringColumns)
         resolve(result)
     } catch (e) {
         reject(e)
@@ -105,6 +114,7 @@ module.exports = {
     readFileWithHeaderTransform,
     readFileWithHeaderTransformAndDelete,
     readFileWithHeaderTransformDeleteAndPascalCase,
+    readFileWithHeaderTransformDeleteAndPascalCaseAndStringColumns,
     replaceAll,
     toLower,
 }

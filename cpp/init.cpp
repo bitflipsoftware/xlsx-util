@@ -8,15 +8,15 @@ namespace xlsx
     Napi::Object Init( Napi::Env env, Napi::Object exports )
     {
       auto funStr = Napi::String::New( env, "readXlsxAsync");
-      auto funObj = Napi::Function::New(env, readXlsxAsync);
+      auto funObj = Napi::Function::New( env, readXlsxAsync );
       exports.Set( funStr, funObj );
 
       funStr = Napi::String::New( env, "replaceAll");
-      funObj = Napi::Function::New(env, replaceAllNapi);
+      funObj = Napi::Function::New( env, replaceAllNapi );
       exports.Set( funStr, funObj );
 
       funStr = Napi::String::New( env, "toLower");
-      funObj = Napi::Function::New(env, toLowerNapi);
+      funObj = Napi::Function::New( env, toLowerNapi );
       exports.Set( funStr, funObj );
 
       return exports;
