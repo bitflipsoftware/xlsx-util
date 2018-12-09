@@ -19,8 +19,8 @@
 
 namespace xlsx
 {
-    Row extractRow( xlsxioreadersheet sheet, int& ioRowSize );
-    
+    Row extractRow( xlsxioreadersheet sheet, int& ioRowSize, const std::vector<std::string>& headers, const std::set<std::string>& stringColumns );
+
     Sheet extractAllRows(
         const char* sheetname,
         xlsx::XlsxReader& xreader,
@@ -28,7 +28,8 @@ namespace xlsx
         const std::map<std::string, std::string>& headerTransformMap,
         const std::set<std::string>& deletes,
         bool doPascalCase,
-        const std::set<std::string>& pascalWords );
+        const std::set<std::string>& pascalWords,
+        const std::set<std::string>& stringColumns );
 
     inline Sheet
     extractAllData(
@@ -37,7 +38,8 @@ namespace xlsx
         const std::map<std::string, std::string>& headerTransformMap,
         const std::set<std::string>& deletes,
         bool doPascalCase,
-        const std::set<std::string>& pascalWords )
+        const std::set<std::string>& pascalWords,
+        const std::set<std::string>& stringColumns )
     {
         xlsx::XlsxReader xreader{ filename };
 
@@ -49,7 +51,7 @@ namespace xlsx
         }
 
         const char* sheetname = nullptr;
-        Sheet sh = extractAllRows( sheetname, xreader, hasHeaders, headerTransformMap, deletes, doPascalCase, pascalWords );
+        Sheet sh = extractAllRows( sheetname, xreader, hasHeaders, headerTransformMap, deletes, doPascalCase, pascalWords, stringColumns );
         return sh;
     }
 
@@ -62,7 +64,8 @@ namespace xlsx
         const std::map<std::string, std::string>& headerTransformMap,
         const std::set<std::string>& deletes,
         bool doPascalCase,
-        const std::set<std::string>& pascalWords )
+        const std::set<std::string>& pascalWords,
+        const std::set<std::string>& stringColumns )
     {
         Sheet result;
         xlsxioreadersheet sheet = nullptr;
@@ -80,7 +83,7 @@ namespace xlsx
             while( xlsxioread_sheet_next_row( sheet ) )
             {
                 int rowSize = 0;
-                auto row = extractRow( sheet, rowSize );
+                auto row = extractRow( sheet, rowSize, headers, stringColumns );
                 maxRowSize = std::max( maxRowSize, rowSize );
 
                 if( isFirstRow && hasHeaders )
@@ -112,7 +115,7 @@ namespace xlsx
         }
 
         const int numRows = result.getNumRows();
-        
+
         for( int i = 0; i < numRows; ++i )
         {
             Row* row = result.getMutableRow( i );
@@ -304,7 +307,7 @@ namespace xlsx
 
             auto delHeaderIter = headers.begin() + static_cast<size_t>( *it );
             headers.erase( delHeaderIter );
-        } 
+        }
 
         result.setHeaders( std::move( headers ) );
         return result;
@@ -312,21 +315,33 @@ namespace xlsx
 
 
     inline Row
-    extractRow( xlsxioreadersheet sheet, int& ioRowSize )
+    extractRow( xlsxioreadersheet sheet, int& ioRowSize, const std::vector<std::string>& headers, const std::set<std::string>& stringColumns )
     {
         char* valueCstr = nullptr;
         Row row{};
+        size_t colIdx = 0;
         ioRowSize = 0;
-        
+
         while( ( valueCstr = xlsxioread_sheet_next_cell( sheet ) ) != NULL )
         {
             const std::string str{ valueCstr };
             Val v;
-            v.setParse( str );
+
+            // do not parse it if it is a stringColumn
+            if( headers.size() > colIdx && stringColumns.find( headers.at( colIdx ) ) != stringColumns.cend() )
+            {
+                v.setString( str );
+            }
+            else
+            {
+                v.setParse( str );
+            }
+
             row.emplace_back( std::move( v ) );
             free( valueCstr );
             valueCstr = nullptr;
             ++ioRowSize;
+            ++colIdx;
         }
 
         return row;

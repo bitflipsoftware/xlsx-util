@@ -5,13 +5,14 @@
 
 namespace xlsx
 {
-    AsyncReader::AsyncReader( 
+    AsyncReader::AsyncReader(
             const std::string& filename,
             bool hasHeaders,
             std::map<std::string, std::string> transformMap,
             std::set<std::string> deletes,
             bool doPascalCase,
             std::set<std::string> pascalWords,
+            std::set<std::string> stringColumns,
             const Napi::Function& callback )
     : Napi::AsyncWorker{ callback }
     , myFilename{ filename }
@@ -20,22 +21,19 @@ namespace xlsx
     , myDeletes{ deletes }
     , myDoPascalCase{ doPascalCase }
     , myPascalWords{ pascalWords }
+    , myStringColumns{ stringColumns }
     , mySheet{}
     {
-        
+
     }
-    
+
 
     void
     AsyncReader::Execute()
     {
-        // cause a segfault
-//        int* x = nullptr;
-//        int y = *x;
-        
         try
         {
-            mySheet = extractAllData( myFilename, myHasHeaders, myTransformMap, myDeletes, myDoPascalCase, myPascalWords );
+            mySheet = extractAllData( myFilename, myHasHeaders, myTransformMap, myDeletes, myDoPascalCase, myPascalWords, myStringColumns );
         }
         catch( std::exception& ex )
         {
@@ -50,7 +48,7 @@ namespace xlsx
 
     void
     AsyncReader::OnOK()
-    {   
+    {
         try
         {
             Napi::Array arr = Napi::Array::New( Env() );
@@ -74,7 +72,7 @@ namespace xlsx
                     }
 
                     const auto let = mySheet.getHeaders().at( j );
-                    
+
                     if( val.getIsString() )
                     {
                         obj.Set( Napi::String::New( Env(), let ), Napi::String::New( Env(), val.getString() ) );
@@ -97,7 +95,7 @@ namespace xlsx
             }
                                                            // error      // result
             Callback().MakeCallback( Receiver().Value(), { Env().Null(), arr } );
-        }   
+        }
         catch( std::exception& e )
         {
             Callback().MakeCallback( Receiver().Value(), { Napi::Error::New( Env(), e.what() ).Value(), Env().Undefined() } );

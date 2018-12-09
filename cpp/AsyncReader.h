@@ -8,14 +8,15 @@ namespace xlsx
     // reads an xlsx file
     class AsyncReader : public Napi::AsyncWorker
     {
-    public:// filename, hasHeaders, transformMap, columnsToDelete, doPascalCase, pascalWords, cb 
-        AsyncReader( 
+    public:// filename, hasHeaders, transformMap, columnsToDelete, doPascalCase, pascalWords, cb
+        AsyncReader(
             const std::string& filename,
             bool hasHeaders,
             std::map<std::string, std::string> transformMap,
             std::set<std::string> deletes,
             bool doPascalCase,
             std::set<std::string> pascalWords,
+            std::set<std::string> stringColumns,
             const Napi::Function& callback );
 
     protected:
@@ -30,6 +31,7 @@ namespace xlsx
         std::set<std::string> myDeletes;
         bool myDoPascalCase;
         std::set<std::string> myPascalWords;
+        std::set<std::string> myStringColumns;
         Sheet mySheet;
     };
 }

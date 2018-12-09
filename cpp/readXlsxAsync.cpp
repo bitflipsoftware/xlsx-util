@@ -15,19 +15,19 @@ namespace xlsx
 
         // we need to check for the presence of a client callback function
         // and if we do not have one then we must raise a synchronous error
-        if( info.Length() != 7 )
+        if( info.Length() != 8 )
         {
-            Napi::TypeError::New(env, "xlsx-util: invalid argument count - should be 7").ThrowAsJavaScriptException();
+            Napi::TypeError::New(env, "xlsx-util: invalid argument count - should be 8").ThrowAsJavaScriptException();
             return;
         }
 
-        if( !info[6].IsFunction() )
+        if( !info[7].IsFunction() )
         {
-            Napi::TypeError::New(env, "xlsx-util: invalid callback function [arg6]").ThrowAsJavaScriptException();
+            Napi::TypeError::New(env, "xlsx-util: invalid callback function [arg7]").ThrowAsJavaScriptException();
             return;
         }
 
-        Napi::Function cb = info[6].As<Napi::Function>();
+        Napi::Function cb = info[7].As<Napi::Function>();
 
         if( !info[0].IsString() )
         {
@@ -102,6 +102,22 @@ namespace xlsx
             }
         }
 
+        std::set<std::string> stringColumns;
+
+        if( !info[6].IsUndefined() && !info[6].IsNull() && info[6].IsArray() )
+        {
+            auto stringCols = info[6].As<Napi::Array>();
+
+            for( int i = 0; i < stringCols.Length(); ++i )
+            {
+                auto value = stringCols.Get( i );
+                if( value.IsString() )
+                {
+                    stringColumns.insert( value.As<Napi::String>().Utf8Value() );
+                }
+            }
+        }
+
         bool doPascalCase = false;
 
         if( !info[4].IsUndefined() && !info[4].IsNull() && info[4].IsBoolean() )
@@ -109,7 +125,7 @@ namespace xlsx
             doPascalCase = info[4].ToBoolean();
         }
 
-        AsyncReader* reader = new AsyncReader{ filename, hasHeaders, transformMap, columnsToDelete, doPascalCase, pascalWords, cb };
+        AsyncReader* reader = new AsyncReader{ filename, hasHeaders, transformMap, columnsToDelete, doPascalCase, pascalWords, stringColumns, cb };
         reader->Queue();
     }
 }
